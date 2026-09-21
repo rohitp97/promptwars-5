@@ -1,11 +1,4 @@
-import type {
-  AnalysisResponse,
-  IsoDate,
-  ParsedAnalysis,
-  RawDeadline,
-  RawFinding,
-  RawNotStated,
-} from '../types'
+import type { AnalysisResponse, IsoDate, ParsedAnalysis, RawDeadline, RawFinding, RawNotStated } from '../types'
 import { isValidIso } from './dates'
 
 export const LIMITS = {

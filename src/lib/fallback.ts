@@ -56,7 +56,9 @@ export function buildFallbackResponse(sourceText: string): AnalysisResponse {
   }
 
   // Prefer the sentence that actually demands payment over one that merely mentions an amount.
-  const moneySentence = sentences.find((s) => findMoney(s) !== null && DEMAND_CUE_RE.test(s)) ?? sentences.find((s) => findMoney(s) !== null)
+  const moneySentence =
+    sentences.find((s) => findMoney(s) !== null && DEMAND_CUE_RE.test(s)) ??
+    sentences.find((s) => findMoney(s) !== null)
   if (moneySentence) {
     demands.push({
       text: `The notice mentions an amount: ${findMoney(moneySentence)}.`,

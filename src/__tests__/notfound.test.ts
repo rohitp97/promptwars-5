@@ -9,13 +9,32 @@ const samples = buildSamples('2026-10-12')
 const text = (id: string) => samples.find((s) => s.id === id)!.text
 
 const blank = (over: Partial<AnalysisResponse> = {}): AnalysisResponse => ({
-  noticeType: 'other', documentLanguage: 'English', noticeDate: null, noticeDateQuote: null,
-  whatItIs: [], demands: [], senderClaims: [], consequences: [], options: [], doNow: [],
-  deadlines: [], notStated: [], lawyerQuestions: [], ...over,
+  noticeType: 'other',
+  documentLanguage: 'English',
+  noticeDate: null,
+  noticeDateQuote: null,
+  whatItIs: [],
+  demands: [],
+  senderClaims: [],
+  consequences: [],
+  options: [],
+  doNow: [],
+  deadlines: [],
+  notStated: [],
+  lawyerQuestions: [],
+  ...over,
 })
 
 const run = (response: AnalysisResponse, source: string) =>
-  assembleResult({ response, malformed: 0, sourceText: source, receivedOn: '2026-10-10', today: '2026-10-12', source: 'gemini', fallbackReason: null })
+  assembleResult({
+    response,
+    malformed: 0,
+    sourceText: source,
+    receivedOn: '2026-10-10',
+    today: '2026-10-12',
+    source: 'gemini',
+    fallbackReason: null,
+  })
 
 describe('derived NOT FOUND entries', () => {
   it('flags a missing amount when the text contains no sum of money', () => {
@@ -40,7 +59,12 @@ describe('derived NOT FOUND entries', () => {
 
   it('does not duplicate what the model already reported', () => {
     const r = run(
-      blank({ notStated: [{ question: 'How much money is claimed?', whyItMatters: 'x' }, { question: 'What is the notice date?', whyItMatters: 'y' }] }),
+      blank({
+        notStated: [
+          { question: 'How much money is claimed?', whyItMatters: 'x' },
+          { question: 'What is the notice date?', whyItMatters: 'y' },
+        ],
+      }),
       'A letter with no sums, dates or time limits at all in its text.',
     )
     const qs = r.notStated.map((n) => n.question)

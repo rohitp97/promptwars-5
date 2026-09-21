@@ -12,7 +12,7 @@ interface Props {
 
 /**
  * The notice exactly as analysed, with every cited passage highlighted and the active one
- * emphasised. Rendered as plain text nodes plus <mark>: no innerHTML.
+ * emphasised. Rendered as plain text nodes plus <mark>, so notice text is never parsed as HTML.
  */
 export function SourceViewer({ text, ranges, activeId, language }: Props) {
   const segments = useMemo(() => segmentText(text, ranges, activeId), [text, ranges, activeId])
@@ -29,7 +29,8 @@ export function SourceViewer({ text, ranges, activeId, language }: Props) {
         Your notice, as analysed
       </h3>
       <p className="mt-0.5 text-xs text-muted">
-        <mark>Highlighted</mark> passages are the ones the results quote. Choose &ldquo;Show in notice&rdquo; on any point to jump here.
+        <mark>Highlighted</mark> passages are the ones the results quote. Choose &ldquo;Show in notice&rdquo; on any
+        point to jump here.
       </p>
       <div
         id="notice-text"

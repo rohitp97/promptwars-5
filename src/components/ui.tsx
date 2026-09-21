@@ -6,7 +6,11 @@ const BADGES: Record<BadgeKind, { label: string; cls: string; Icon: typeof Shiel
   verified: { label: 'Verified quote', cls: 'bg-verifiedSoft text-verified border-verified/30', Icon: ShieldCheck },
   approximate: { label: 'Approximate match', cls: 'bg-approxSoft text-approx border-approx/30', Icon: ScanSearch },
   playbook: { label: 'General information', cls: 'bg-playbookSoft text-playbook border-playbook/30', Icon: BookOpen },
-  notfound: { label: 'Not in your notice', cls: 'bg-missingSoft text-missing border-missing/30', Icon: CircleQuestionMark },
+  notfound: {
+    label: 'Not in your notice',
+    cls: 'bg-missingSoft text-missing border-missing/30',
+    Icon: CircleQuestionMark,
+  },
 }
 
 /** Every status has an icon AND a text label — colour is never the only signal. */
@@ -20,7 +24,13 @@ export function ProvenanceBadge({ kind }: { kind: BadgeKind }) {
   )
 }
 
-export function Panel({ id, title, hint, actions, children }: {
+export function Panel({
+  id,
+  title,
+  hint,
+  actions,
+  children,
+}: {
   id: string
   title: string
   hint?: string

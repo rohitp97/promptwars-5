@@ -2,30 +2,15 @@
 export type IsoDate = string
 
 export type NoticeTypeId =
-  | 'cheque_bounce'
-  | 'eviction_rent'
-  | 'loan_recovery'
-  | 'employment_dispute'
-  | 'consumer_demand'
+  'cheque_bounce' | 'eviction_rent' | 'loan_recovery' | 'employment_dispute' | 'consumer_demand'
 
 /** 'other' means the notice matched no curated playbook — the app must not invent guidance. */
 export type NoticeType = NoticeTypeId | 'other'
 
-export type FindingSection =
-  | 'whatItIs'
-  | 'demands'
-  | 'senderClaims'
-  | 'consequences'
-  | 'options'
-  | 'doNow'
+export type FindingSection = 'whatItIs' | 'demands' | 'senderClaims' | 'consequences' | 'options' | 'doNow'
 
 /** Sections that describe the notice itself, so they must rest on a quote from it. */
-export const DOCUMENT_ONLY_SECTIONS: readonly FindingSection[] = [
-  'whatItIs',
-  'demands',
-  'senderClaims',
-  'consequences',
-]
+export const DOCUMENT_ONLY_SECTIONS: readonly FindingSection[] = ['whatItIs', 'demands', 'senderClaims', 'consequences']
 
 // ── Model → app contract ──────────────────────────────────────────────────────
 

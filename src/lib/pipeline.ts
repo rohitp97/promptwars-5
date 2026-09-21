@@ -3,6 +3,7 @@ import { parseJsonLoose } from './ai'
 import { assembleResult, isUnusable } from './analysis'
 import { buildFallbackResponse } from './fallback'
 import { buildAnalysisPrompt, buildTranscriptionPrompt, MAX_SOURCE_CHARS } from './prompts'
+import { anyOf } from './regex'
 import { detectNoticeType } from './retrieval'
 import { parseAnalysis } from './validation'
 import { todayIso } from './dates'
@@ -31,14 +32,36 @@ type FailureKind = 'timeout' | 'format' | 'quota' | 'config' | 'busy' | 'unavail
  */
 const RETRYABLE: readonly FailureKind[] = ['format']
 
+const TIMEOUT = anyOf(/timed out/, /timeout/)
+
+/** Setup problems no retry or other model can fix. Includes the Firebase SDK's own error codes. */
+const CONFIG = anyOf(
+  /\b(401|403)\b/,
+  /permission.?denied/,
+  /unauthenticated/,
+  /forbidden/,
+  /has not been used/,
+  /is disabled/,
+  /api key not valid/,
+  /not[ -]enabled/,
+  /to be enabled/,
+  /AI\/(no-api-key|no-project-id|no-app-id|api-not-enabled)/,
+)
+
+const MALFORMED_ANSWER = anyOf(/expected shape/, /not valid/)
+const QUOTA = anyOf(/429/, /quota/, /rate.?limit/, /resource.?exhausted/)
+const OVERLOADED = anyOf(/high demand/, /overloaded/, /\b(500|502|503|504)\b/, /unavailable/)
+
+/** Buckets a provider error so the person gets an honest message and we only retry what can help. */
 export function classify(err: unknown): FailureKind {
+  if (err instanceof SyntaxError) return 'format'
   const message = err instanceof Error ? err.message : String(err)
-  if (/timed out|timeout/i.test(message)) return 'timeout'
+  if (TIMEOUT.test(message)) return 'timeout'
   // Config before format: "API key not valid" is a setup problem, not a malformed answer.
-  if (/\b(401|403)\b|permission.?denied|unauthenticated|forbidden|has not been used|is disabled|api key not valid|not[ -]enabled|to be enabled|AI\/(no-api-key|no-project-id|no-app-id|api-not-enabled)/i.test(message)) return 'config'
-  if (err instanceof SyntaxError || /expected shape|not valid/i.test(message)) return 'format'
-  if (/429|quota|rate.?limit|resource.?exhausted/i.test(message)) return 'quota'
-  if (/high demand|overloaded|\b(500|502|503|504)\b|unavailable/i.test(message)) return 'busy'
+  if (CONFIG.test(message)) return 'config'
+  if (MALFORMED_ANSWER.test(message)) return 'format'
+  if (QUOTA.test(message)) return 'quota'
+  if (OVERLOADED.test(message)) return 'busy'
   return 'unavailable'
 }
 
@@ -57,7 +80,9 @@ export function validateNoticeText(raw: string): string {
   if (text.length === 0) throw new UserError('Paste the notice text or upload a photo first.')
   if (text.length < MIN_NOTICE_CHARS) throw new UserError('That is too short to be a notice. Paste the full text.')
   if (text.length > MAX_SOURCE_CHARS) {
-    throw new UserError(`That is longer than ${MAX_SOURCE_CHARS.toLocaleString('en-IN')} characters. Paste the notice itself (usually 1–3 pages), not the whole file.`)
+    throw new UserError(
+      `That is longer than ${MAX_SOURCE_CHARS.toLocaleString('en-IN')} characters. Paste the notice itself (usually 1–3 pages), not the whole file.`,
+    )
   }
   return text
 }
@@ -78,7 +103,11 @@ function fallbackResult(text: string, options: IntakeOptions, now: Date, reason:
  * The whole analysis: ask the model (with one retry), parse strictly, verify every claim, resolve
  * dates in code. Anything that goes wrong lands on the rule-based reading, clearly labelled.
  */
-export async function analyseNotice(rawText: string, options: IntakeOptions, deps: PipelineDeps): Promise<AnalysisResult> {
+export async function analyseNotice(
+  rawText: string,
+  options: IntakeOptions,
+  deps: PipelineDeps,
+): Promise<AnalysisResult> {
   const text = validateNoticeText(rawText)
   const now = (deps.now ?? (() => new Date()))()
 
@@ -87,7 +116,12 @@ export async function analyseNotice(rawText: string, options: IntakeOptions, dep
   }
 
   const hint = detectNoticeType(text)
-  const { systemInstruction, prompt } = buildAnalysisPrompt({ sourceText: text, receivedOn: options.receivedOn, language: options.language, hint })
+  const { systemInstruction, prompt } = buildAnalysisPrompt({
+    sourceText: text,
+    receivedOn: options.receivedOn,
+    language: options.language,
+    hint,
+  })
 
   let failure: FailureKind = 'unavailable'
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -110,13 +144,21 @@ export async function analyseNotice(rawText: string, options: IntakeOptions, dep
         fallbackReason: null,
       })
       if (isUnusable(result)) {
-        return fallbackResult(text, options, now, 'None of the AI’s statements could be verified against your notice, so nothing from it is shown.')
+        return fallbackResult(
+          text,
+          options,
+          now,
+          'None of the AI’s statements could be verified against your notice, so nothing from it is shown.',
+        )
       }
       return result
     } catch (err) {
       failure = classify(err)
       // For whoever operates the site: the person sees a friendly note, the console keeps the cause.
-      console.warn(`[cited] AI request failed (${failure}, attempt ${attempt}):`, err instanceof Error ? err.message : err)
+      console.warn(
+        `[cited] AI request failed (${failure}, attempt ${attempt}):`,
+        err instanceof Error ? err.message : err,
+      )
       if (!RETRYABLE.includes(failure)) break
     }
   }
@@ -132,7 +174,12 @@ export async function transcribeFile(file: UploadedFile, deps: PipelineDeps): Pr
   let text: string
   try {
     text = await withTimeout(
-      deps.provider.generate({ systemInstruction, prompt, json: false, file: { mimeType: file.mimeType, base64: file.base64 } }),
+      deps.provider.generate({
+        systemInstruction,
+        prompt,
+        json: false,
+        file: { mimeType: file.mimeType, base64: file.base64 },
+      }),
       TRANSCRIBE_TIMEOUT_MS,
       'The AI request timed out',
     )
@@ -141,7 +188,9 @@ export async function transcribeFile(file: UploadedFile, deps: PipelineDeps): Pr
   }
   const cleaned = text.trim()
   if (cleaned.replace(/\[illegible\]/gi, '').trim().length < MIN_NOTICE_CHARS) {
-    throw new UserError('Almost nothing could be read from that file. Try a clearer, straighter photo, or paste the text.')
+    throw new UserError(
+      'Almost nothing could be read from that file. Try a clearer, straighter photo, or paste the text.',
+    )
   }
   return cleaned.slice(0, MAX_SOURCE_CHARS)
 }

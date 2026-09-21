@@ -79,7 +79,12 @@ export function Checklist({ items, activeId, onLocate }: { items: VerifiedFindin
         {items.map((f) => (
           <li key={f.id} className="rounded-lg border border-line bg-white p-3">
             <label className="flex cursor-pointer items-start gap-3">
-              <input type="checkbox" checked={done.has(f.id)} onChange={() => toggle(f.id)} className="mt-1 h-5 w-5 shrink-0 accent-[#1f3a5f]" />
+              <input
+                type="checkbox"
+                checked={done.has(f.id)}
+                onChange={() => toggle(f.id)}
+                className="mt-1 h-5 w-5 shrink-0 accent-[#1f3a5f]"
+              />
               <span className={done.has(f.id) ? 'text-muted line-through' : ''}>
                 <span className="block text-base font-medium">{f.text}</span>
               </span>
@@ -123,12 +128,16 @@ function DeadlineItem({ d, today, activeId, onLocate }: { d: ResolvedDeadline; t
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <ProvenanceBadge kind={badgeKind(d.provenance)} />
-        <span className="text-xs text-muted">{d.origin === 'notice' ? 'Stated in your notice' : 'General rule for this type of notice'}</span>
+        <span className="text-xs text-muted">
+          {d.origin === 'notice' ? 'Stated in your notice' : 'General rule for this type of notice'}
+        </span>
       </div>
       <p className="mt-2 text-sm text-muted">{d.basis}</p>
       {d.provenance.kind === 'document' && (
         <>
-          <blockquote className="mt-2 border-l-4 border-mark bg-paper py-1 pl-3 pr-2 font-serif text-sm">{d.provenance.quote}</blockquote>
+          <blockquote className="mt-2 border-l-4 border-mark bg-paper py-1 pl-3 pr-2 font-serif text-sm">
+            {d.provenance.quote}
+          </blockquote>
           <div className="mt-2">
             <LocateButton id={d.id} activeId={activeId} onLocate={onLocate} />
           </div>
@@ -140,7 +149,13 @@ function DeadlineItem({ d, today, activeId, onLocate }: { d: ResolvedDeadline; t
 
 export function CalendarButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   return (
-    <button type="button" className={buttonClass} disabled={disabled} onClick={onClick} title={disabled ? 'No upcoming dated deadlines to add' : undefined}>
+    <button
+      type="button"
+      className={buttonClass}
+      disabled={disabled}
+      onClick={onClick}
+      title={disabled ? 'No upcoming dated deadlines to add' : undefined}
+    >
       <CalendarPlus aria-hidden="true" size={16} /> Add dates to calendar
     </button>
   )

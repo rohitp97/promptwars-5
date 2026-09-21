@@ -21,15 +21,46 @@ const fakeProvider = (payload: unknown | (() => string)): AiProvider => ({
 })
 
 const chequePayload = (over: Record<string, unknown> = {}) => ({
-  noticeType: 'cheque_bounce', documentLanguage: 'English', noticeDate: null, noticeDateQuote: null,
-  whatItIs: [{ text: 'A cheque-bounce demand notice.', why: null, quote: 'LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881', playbookRef: null }],
+  noticeType: 'cheque_bounce',
+  documentLanguage: 'English',
+  noticeDate: null,
+  noticeDateQuote: null,
+  whatItIs: [
+    {
+      text: 'A cheque-bounce demand notice.',
+      why: null,
+      quote: 'LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881',
+      playbookRef: null,
+    },
+  ],
   demands: [
-    { text: 'Pay Rs. 1,50,000.', why: 'It is the amount to pay or dispute.', quote: 'pay the said sum of Rs. 1,50,000/- to my client within 15 days of receipt of this notice', playbookRef: null },
-    { text: 'Also pay Rs. 10 lakh in damages.', why: null, quote: 'you shall also pay ten lakh rupees as punitive damages to my client', playbookRef: null },
+    {
+      text: 'Pay Rs. 1,50,000.',
+      why: 'It is the amount to pay or dispute.',
+      quote: 'pay the said sum of Rs. 1,50,000/- to my client within 15 days of receipt of this notice',
+      playbookRef: null,
+    },
+    {
+      text: 'Also pay Rs. 10 lakh in damages.',
+      why: null,
+      quote: 'you shall also pay ten lakh rupees as punitive damages to my client',
+      playbookRef: null,
+    },
   ],
   options: [{ text: 'Pay within the window.', why: null, quote: null, playbookRef: 'cheque_bounce.opt.pay' }],
-  doNow: [{ text: 'Note when the notice reached you.', why: null, quote: null, playbookRef: 'cheque_bounce.pit.receipt' }],
-  deadlines: [{ label: 'Pay Rs. 1,50,000', quote: 'within 15 days of receipt of this notice', kind: 'relative', date: null, days: 15, from: 'receipt' }],
+  doNow: [
+    { text: 'Note when the notice reached you.', why: null, quote: null, playbookRef: 'cheque_bounce.pit.receipt' },
+  ],
+  deadlines: [
+    {
+      label: 'Pay Rs. 1,50,000',
+      quote: 'within 15 days of receipt of this notice',
+      kind: 'relative',
+      date: null,
+      days: 15,
+      from: 'receipt',
+    },
+  ],
   notStated: [{ question: 'Which bank returned the cheque?', whyItMatters: 'You need it to check the return memo.' }],
   lawyerQuestions: ['Was this notice sent within 30 days of the return memo?'],
   ...over,
@@ -107,7 +138,10 @@ describe('intake', () => {
     const user = userEvent.setup({ applyAccept: false })
     render(<App />)
     await user.click(screen.getByRole('tab', { name: /Photo or PDF/ }))
-    await user.upload(screen.getByLabelText('Choose a file', { selector: 'input' }), new File(['x'], 'run.exe', { type: 'application/x-msdownload' }))
+    await user.upload(
+      screen.getByLabelText('Choose a file', { selector: 'input' }),
+      new File(['x'], 'run.exe', { type: 'application/x-msdownload' }),
+    )
     expect(await screen.findByRole('alert')).toHaveTextContent(/photo|PDF|paste/i)
   })
 })
@@ -163,7 +197,9 @@ describe('rule-based path (no AI configured)', () => {
     await loadSampleAndDecode(user, /A notice with no playbook/)
     expect(await screen.findByText(/No curated guidance for this kind of notice/)).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Your options' })).not.toBeInTheDocument()
-    expect(within(screenView()).getByRole('heading', { name: "What the notice doesn't say", level: 3 })).toBeInTheDocument()
+    expect(
+      within(screenView()).getByRole('heading', { name: "What the notice doesn't say", level: 3 }),
+    ).toBeInTheDocument()
   })
 
   it('"Clear everything" wipes the result and the draft', async () => {
@@ -188,7 +224,10 @@ describe('rule-based path (no AI configured)', () => {
     const user = userEvent.setup()
     render(<App />)
     await loadSampleAndDecode(user, /Cheque bounce notice/)
-    Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('denied')) }, configurable: true })
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: () => Promise.reject(new Error('denied')) },
+      configurable: true,
+    })
     await user.click(await screen.findByRole('button', { name: /Copy/ }))
     expect(await screen.findByText(/Could not copy/)).toBeInTheDocument()
   })
@@ -207,7 +246,9 @@ describe('AI path (mocked Gemini provider)', () => {
     const demands = screen.getByRole('heading', { name: 'What they want from you' }).closest('section')!
     expect(within(demands).getByText('Pay Rs. 1,50,000.')).toBeInTheDocument()
     // The fabricated "10 lakh" demand must not appear as a finding...
-    expect(screen.queryByText('Also pay Rs. 10 lakh in damages.', { selector: 'p.font-medium' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Also pay Rs. 10 lakh in damages.', { selector: 'p.font-medium' }),
+    ).not.toBeInTheDocument()
     // ...but it is disclosed in the verification report.
     const summary = screen.getByText(/statements checked:/).closest('summary')!
     expect(summary).toHaveTextContent(/1 removed/)
@@ -215,7 +256,9 @@ describe('AI path (mocked Gemini provider)', () => {
     expect(screen.getByText(/Also pay Rs. 10 lakh in damages\./)).toBeInTheDocument()
     expect(screen.getByText(/Quote not found in the notice/)).toBeInTheDocument()
     // Model-listed NOT FOUND items are shown.
-    const notFound = within(screenView()).getByRole('heading', { name: "What the notice doesn't say", level: 3 }).closest('section')!
+    const notFound = within(screenView())
+      .getByRole('heading', { name: "What the notice doesn't say", level: 3 })
+      .closest('section')!
     expect(within(notFound).getByText('Which bank returned the cheque?')).toBeInTheDocument()
   })
 
@@ -250,7 +293,10 @@ describe('AI path (mocked Gemini provider)', () => {
     let release: (v: string) => void = () => {}
     createAiProvider.mockReturnValue({
       name: 'gemini-api-key',
-      generate: () => new Promise<string>((r) => { release = r }),
+      generate: () =>
+        new Promise<string>((r) => {
+          release = r
+        }),
     })
     const user = userEvent.setup()
     render(<App />)
@@ -277,7 +323,10 @@ describe('photo upload flow', () => {
 
   const uploadPhoto = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.click(screen.getByRole('tab', { name: /Photo or PDF/ }))
-    await user.upload(screen.getByLabelText('Choose a file', { selector: 'input' }), new File(['x'], 'notice.png', { type: 'image/png' }))
+    await user.upload(
+      screen.getByLabelText('Choose a file', { selector: 'input' }),
+      new File(['x'], 'notice.png', { type: 'image/png' }),
+    )
   }
 
   it('reads the photo, lets the person correct the text, then analyses exactly the corrected text', async () => {
@@ -336,8 +385,13 @@ describe('photo upload flow', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(screen.getByRole('tab', { name: /Photo or PDF/ }))
-    await user.upload(screen.getByLabelText('Choose a file', { selector: 'input' }), new File([TRANSCRIPT], 'notice.txt', { type: 'text/plain' }))
-    await waitFor(() => expect((screen.getByLabelText('The text of your notice') as HTMLTextAreaElement).value).toBe(TRANSCRIPT))
+    await user.upload(
+      screen.getByLabelText('Choose a file', { selector: 'input' }),
+      new File([TRANSCRIPT], 'notice.txt', { type: 'text/plain' }),
+    )
+    await waitFor(() =>
+      expect((screen.getByLabelText('The text of your notice') as HTMLTextAreaElement).value).toBe(TRANSCRIPT),
+    )
     expect(generate).not.toHaveBeenCalled()
   })
 })

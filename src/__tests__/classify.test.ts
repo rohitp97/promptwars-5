@@ -10,7 +10,7 @@ const GOOGLE_403 =
 
 // The Firebase SDK wraps that same failure in its own wording; captured from a real run.
 const SDK_NOT_ENABLED =
-  "AI: The Firebase AI SDK requires the Firebase AI API ('firebasevertexai.googleapis.com') to be enabled in your Firebase project. Enable this API by visiting the Firebase Console at https://console.firebase.google.com/project/promptwars-5/ailogic/ and clicking \"Get started\". If you enabled this API recently, wait a few minutes for the action to propagate to our systems and then retry. (AI/api-not-enabled)"
+  'AI: The Firebase AI SDK requires the Firebase AI API (\'firebasevertexai.googleapis.com\') to be enabled in your Firebase project. Enable this API by visiting the Firebase Console at https://console.firebase.google.com/project/promptwars-5/ailogic/ and clicking "Get started". If you enabled this API recently, wait a few minutes for the action to propagate to our systems and then retry. (AI/api-not-enabled)'
 
 describe('classify', () => {
   it.each([
@@ -60,7 +60,14 @@ describe('analyseNotice on a configuration failure', () => {
   afterEach(() => warn.mockRestore())
 
   const failing = (message: string): AiProvider & { calls: number } => {
-    const p = { name: 'firebase-ai-logic' as const, calls: 0, generate: async (): Promise<string> => { p.calls++; throw new Error(message) } }
+    const p = {
+      name: 'firebase-ai-logic' as const,
+      calls: 0,
+      generate: async (): Promise<string> => {
+        p.calls++
+        throw new Error(message)
+      },
+    }
     return p
   }
 
@@ -96,13 +103,20 @@ describe('analyseNotice on a configuration failure', () => {
 
   it('still retries once when the answer itself was malformed', async () => {
     let n = 0
-    const p: AiProvider = { name: 'firebase-ai-logic', generate: async () => (++n === 1 ? 'not json' : 'still not json') }
+    const p: AiProvider = {
+      name: 'firebase-ai-logic',
+      generate: async () => (++n === 1 ? 'not json' : 'still not json'),
+    }
     await analyseNotice(text, { receivedOn: '2026-09-19', language: 'auto' }, { provider: p, now: () => NOW })
     expect(n).toBe(2)
   })
 
   it('logs the cause for the operator but never the notice text', async () => {
-    await analyseNotice(text, { receivedOn: '2026-09-19', language: 'auto' }, { provider: failing(GOOGLE_403), now: () => NOW })
+    await analyseNotice(
+      text,
+      { receivedOn: '2026-09-19', language: 'auto' },
+      { provider: failing(GOOGLE_403), now: () => NOW },
+    )
     expect(warn).toHaveBeenCalledTimes(1)
     const logged = warn.mock.calls.flat().join(' ')
     expect(logged).toContain('config')
@@ -112,7 +126,11 @@ describe('analyseNotice on a configuration failure', () => {
   })
 
   it('does not show the raw provider error to the person', async () => {
-    const r = await analyseNotice(text, { receivedOn: '2026-09-19', language: 'auto' }, { provider: failing(GOOGLE_403), now: () => NOW })
+    const r = await analyseNotice(
+      text,
+      { receivedOn: '2026-09-19', language: 'auto' },
+      { provider: failing(GOOGLE_403), now: () => NOW },
+    )
     expect(r.fallbackReason).not.toContain('360101983865')
     expect(r.fallbackReason).not.toContain('console.developers.google.com')
   })

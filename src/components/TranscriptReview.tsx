@@ -21,14 +21,18 @@ export function TranscriptReview({ fileName, initialText, previewUrl, onConfirm,
         Check what we read
       </h2>
       <p className="mt-2 text-base text-muted">
-        Compare this with your document and fix any mistakes. Every quote in the results is checked against exactly this text, so
-        getting it right here matters most for names, amounts and dates.
+        Compare this with your document and fix any mistakes. Every quote in the results is checked against exactly this
+        text, so getting it right here matters most for names, amounts and dates.
       </p>
 
       <div className={`mt-4 grid gap-4 ${previewUrl ? 'md:grid-cols-2' : ''}`}>
         {previewUrl && (
           <figure className="rounded-lg border border-line bg-white p-2">
-            <img src={previewUrl} alt={`The photo you uploaded: ${fileName}`} className="max-h-[70vh] w-full object-contain" />
+            <img
+              src={previewUrl}
+              alt={`The photo you uploaded: ${fileName}`}
+              className="max-h-[70vh] w-full object-contain"
+            />
             <figcaption className="mt-1 text-xs text-muted">{fileName}</figcaption>
           </figure>
         )}
@@ -48,7 +52,12 @@ export function TranscriptReview({ fileName, initialText, previewUrl, onConfirm,
       </div>
 
       <div className="mt-4 flex flex-wrap gap-3">
-        <button type="button" className={primaryButtonClass} disabled={text.trim().length === 0} onClick={() => onConfirm(text)}>
+        <button
+          type="button"
+          className={primaryButtonClass}
+          disabled={text.trim().length === 0}
+          onClick={() => onConfirm(text)}
+        >
           Looks right — decode it
         </button>
         <button type="button" className={buttonClass} onClick={onBack}>

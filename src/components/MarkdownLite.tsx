@@ -14,7 +14,13 @@ function inline(text: string, keyBase: string): ReactNode[] {
   let i = 0
   for (const m of text.matchAll(re)) {
     if (m.index > last) out.push(text.slice(last, m.index))
-    out.push(m[1] !== undefined ? <strong key={`${keyBase}-${i++}`}>{m[1]}</strong> : <em key={`${keyBase}-${i++}`}>{m[2]}</em>)
+    out.push(
+      m[1] !== undefined ? (
+        <strong key={`${keyBase}-${i++}`}>{m[1]}</strong>
+      ) : (
+        <em key={`${keyBase}-${i++}`}>{m[2]}</em>
+      ),
+    )
     last = m.index + m[0].length
   }
   if (last < text.length) out.push(text.slice(last))
@@ -39,10 +45,18 @@ export function MarkdownLite({ text, baseLevel = 2 }: { text: string; baseLevel?
     if (line.trim() === '') {
       i++
     } else if (line.startsWith('# ')) {
-      blocks.push(<H1 key={key} className="mb-2 text-xl font-bold text-brand">{inline(line.slice(2), key)}</H1>)
+      blocks.push(
+        <H1 key={key} className="mb-2 text-xl font-bold text-brand">
+          {inline(line.slice(2), key)}
+        </H1>,
+      )
       i++
     } else if (line.startsWith('## ')) {
-      blocks.push(<H2 key={key} className="mb-1 mt-4 text-base font-semibold text-brand">{inline(line.slice(3), key)}</H2>)
+      blocks.push(
+        <H2 key={key} className="mb-1 mt-4 text-base font-semibold text-brand">
+          {inline(line.slice(3), key)}
+        </H2>,
+      )
       i++
     } else if (line.trim() === '---') {
       blocks.push(<hr key={key} className="my-3 border-line" />)
@@ -70,17 +84,30 @@ export function MarkdownLite({ text, baseLevel = 2 }: { text: string; baseLevel?
           )
           i++
         }
-        items.push(<li key={itemKey}>{inline(content, itemKey)}{nested}</li>)
+        items.push(
+          <li key={itemKey}>
+            {inline(content, itemKey)}
+            {nested}
+          </li>,
+        )
       }
       blocks.push(
         ordered ? (
-          <ol key={key} className="my-1 list-decimal space-y-1 pl-6">{items}</ol>
+          <ol key={key} className="my-1 list-decimal space-y-1 pl-6">
+            {items}
+          </ol>
         ) : (
-          <ul key={key} className="my-1 list-disc space-y-1 pl-6">{items}</ul>
+          <ul key={key} className="my-1 list-disc space-y-1 pl-6">
+            {items}
+          </ul>
         ),
       )
     } else {
-      blocks.push(<p key={key} className="my-1 text-sm">{inline(line, key)}</p>)
+      blocks.push(
+        <p key={key} className="my-1 text-sm">
+          {inline(line, key)}
+        </p>,
+      )
       i++
     }
   }

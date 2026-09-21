@@ -80,9 +80,10 @@ Gemini analyse (strict JSON, prompt-injection-hardened, playbook as grounding)
    ▼
 parseAnalysis()      shape validation, no `any`
    ▼
-verifyClaims()       quote ✓ / ≈ / ✗ , playbookRef exists?
+verifyFindings()     quote ✓ / ≈ / ✗ , playbookRef exists?
    ▼
-computeDeadlines()   stated deadlines + statutory timeline → real dates from receipt date
+resolveNoticeDeadlines() + resolveStatutoryDeadlines()
+                     stated deadlines + statutory timeline → real dates from receipt date
    ▼
 deriveUrgency()      overdue / critical / high / moderate / low / unknown  (code, not LLM)
    ▼
@@ -177,7 +178,7 @@ src/
 │   └── withTimeout.ts
 ├── hooks/useCase.ts        # phases: intake → reading → review → analysing → result
 ├── components/             # Intake · TranscriptReview · Results · Findings · SourceViewer · …
-└── __tests__/              # 240+ tests
+└── __tests__/              # 360+ tests
 ```
 
 | Layer | Choice |
@@ -212,7 +213,7 @@ src/
   no HTML injection, no server-side storage. Residual risk documented (enable App Check).
 - **Efficiency:** O(n) index-mapped verification; SDKs lazy-loaded per provider; one Gemini
   call for analysis (+ one for OCR only for files).
-- **Testing:** 240+ tests, edge-case focused — normalisation (Devanagari, astral chars, ligatures),
+- **Testing:** 360+ tests, edge-case focused — normalisation (Devanagari, astral chars, ligatures),
   quote matching (exact/approximate/paraphrase/short/empty), month-end and leap-year dates,
   malformed model output (every rejection path), model-vs-quote number mismatches, hostile notices
   (fence-escape, invented authority), retry/timeout/quota/fallback in the pipeline, provider

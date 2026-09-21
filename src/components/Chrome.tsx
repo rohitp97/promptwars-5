@@ -49,9 +49,9 @@ export function Disclaimer() {
       <p className="mx-auto flex max-w-6xl items-start gap-2 px-4 py-2 text-sm text-ink">
         <Info aria-hidden="true" size={18} className="mt-0.5 shrink-0 text-approx" />
         <span>
-          <strong>Information, not legal advice.</strong> Cited helps you understand a notice and prepare for a lawyer; it can make
-          mistakes and is not a substitute for one. Free legal aid is available from your State Legal Services Authority (NALSA
-          helpline: 15100).
+          <strong>Information, not legal advice.</strong> Cited helps you understand a notice and prepare for a lawyer;
+          it can make mistakes and is not a substitute for one. Free legal aid is available from your State Legal
+          Services Authority (NALSA helpline: 15100).
         </span>
       </p>
     </aside>

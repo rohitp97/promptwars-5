@@ -1,8 +1,10 @@
-/** @type {import('tailwindcss').Config} */
+import type { Config } from 'tailwindcss'
+
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Every text/background pair used in the UI is checked against WCAG AA in src/__tests__/contrast.test.ts.
       colors: {
         paper: '#f7f4ee',
         card: '#ffffff',
@@ -38,4 +40,4 @@ export default {
     },
   },
   plugins: [],
-}
+} satisfies Config

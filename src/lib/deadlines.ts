@@ -45,7 +45,10 @@ export function resolveRawDeadline(deadline: RawDeadline, ctx: DeadlineContext):
       }
     case 'notice_date':
       if (ctx.noticeDate === null) {
-        return { date: null, basis: `${days} days from the date on the notice, but the notice does not state its date.` }
+        return {
+          date: null,
+          basis: `${days} days from the date on the notice, but the notice does not state its date.`,
+        }
       }
       return {
         date: addDays(ctx.noticeDate, days),

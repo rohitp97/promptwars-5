@@ -17,7 +17,13 @@ import type { RawDeadline, ResolvedDeadline } from '../types'
 const ctx: DeadlineContext = { receivedOn: '2026-10-10', noticeDate: '2026-10-06', today: '2026-10-12' }
 
 const rel = (over: Partial<RawDeadline> = {}): RawDeadline => ({
-  label: 'Pay', quote: 'within 15 days of receipt of this notice', kind: 'relative', date: null, days: 15, from: 'receipt', ...over,
+  label: 'Pay',
+  quote: 'within 15 days of receipt of this notice',
+  kind: 'relative',
+  date: null,
+  days: 15,
+  from: 'receipt',
+  ...over,
 })
 
 describe('resolveRawDeadline', () => {
@@ -51,7 +57,9 @@ describe('resolveRawDeadline', () => {
   })
 
   it('uses a valid absolute date and rejects an invalid one', () => {
-    expect(resolveRawDeadline({ ...rel(), kind: 'absolute', date: '2026-11-05', days: null }, ctx).date).toBe('2026-11-05')
+    expect(resolveRawDeadline({ ...rel(), kind: 'absolute', date: '2026-11-05', days: null }, ctx).date).toBe(
+      '2026-11-05',
+    )
     expect(resolveRawDeadline({ ...rel(), kind: 'absolute', date: null, days: null }, ctx).date).toBeNull()
   })
 
@@ -86,7 +94,9 @@ describe('crossCheckDeadline', () => {
 })
 
 describe('resolveNoticeDeadlines', () => {
-  const src = prepareSource('You must pay within 15 days of receipt of this notice. Vacate on or before 5 November 2026.')
+  const src = prepareSource(
+    'You must pay within 15 days of receipt of this notice. Vacate on or before 5 November 2026.',
+  )
 
   it('keeps verified deadlines with document provenance', () => {
     const { deadlines, removed } = resolveNoticeDeadlines([rel()], src, ctx)
@@ -96,7 +106,11 @@ describe('resolveNoticeDeadlines', () => {
   })
 
   it('removes a deadline whose quote is not in the notice', () => {
-    const { deadlines, removed } = resolveNoticeDeadlines([rel({ quote: 'within 90 days of the agreement date' })], src, ctx)
+    const { deadlines, removed } = resolveNoticeDeadlines(
+      [rel({ quote: 'within 90 days of the agreement date' })],
+      src,
+      ctx,
+    )
     expect(deadlines).toHaveLength(0)
     expect(removed[0]).toMatchObject({ section: 'deadlines', reason: 'Quote not found in the notice' })
   })
@@ -109,7 +123,11 @@ describe('resolveNoticeDeadlines', () => {
 
   it('warns when the date could not be double-checked', () => {
     const s = prepareSource('Pay by the fifteenth day after you receive this letter of demand.')
-    const { deadlines } = resolveNoticeDeadlines([rel({ quote: 'by the fifteenth day after you receive this letter' })], s, ctx)
+    const { deadlines } = resolveNoticeDeadlines(
+      [rel({ quote: 'by the fifteenth day after you receive this letter' })],
+      s,
+      ctx,
+    )
     expect(deadlines[0].date).toBe('2026-10-25')
     expect(deadlines[0].basis).toMatch(/confirm it against the quote/)
   })
@@ -142,7 +160,12 @@ describe('resolveStatutoryDeadlines', () => {
 
 describe('daysLeft, sortDeadlines and urgency', () => {
   const mk = (id: string, date: string | null, label = id): ResolvedDeadline => ({
-    id, label, origin: 'notice', date, basis: '', provenance: { kind: 'playbook', ref: id, refLabel: id },
+    id,
+    label,
+    origin: 'notice',
+    date,
+    basis: '',
+    provenance: { kind: 'playbook', ref: id, refLabel: id },
   })
 
   it('computes signed days left and null for undated', () => {

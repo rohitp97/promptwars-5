@@ -13,10 +13,18 @@ export interface Segment {
 
 /**
  * Split `text` at every range boundary so it can be rendered as plain React text nodes with <mark>
- * around cited spans — no innerHTML anywhere. Out-of-bounds and empty ranges are ignored.
+ * around cited spans, so notice text is never parsed as HTML. Out-of-bounds and empty ranges are ignored.
  */
 export function segmentText(text: string, ranges: readonly HighlightRange[], activeId: string | null): Segment[] {
-  const valid = ranges.filter((r) => Number.isInteger(r.start) && Number.isInteger(r.end) && r.start >= 0 && r.end > r.start && r.start < text.length)
+  const valid = ranges
+    .filter(
+      (r) =>
+        Number.isInteger(r.start) &&
+        Number.isInteger(r.end) &&
+        r.start >= 0 &&
+        r.end > r.start &&
+        r.start < text.length,
+    )
     .map((r) => ({ ...r, end: Math.min(r.end, text.length) }))
   if (valid.length === 0) return text.length === 0 ? [] : [{ text, ids: [], active: false }]
 

@@ -25,7 +25,13 @@ export function deriveUrgency(deadlines: readonly ResolvedDeadline[], today: Iso
     const when = next.left === 0 ? 'today' : `in ${plural(next.left, 'day')}`
     const passed = past.length > 0 ? ` ${plural(past.length, 'earlier date')} already passed.` : ''
     const level =
-      next.left <= CRITICAL_DAYS ? 'critical' : next.left <= HIGH_DAYS ? 'high' : next.left <= MODERATE_DAYS ? 'moderate' : 'low'
+      next.left <= CRITICAL_DAYS
+        ? 'critical'
+        : next.left <= HIGH_DAYS
+          ? 'high'
+          : next.left <= MODERATE_DAYS
+            ? 'moderate'
+            : 'low'
     return { level, reason: `Next date: ${next.d.label} — ${when}.${passed}` }
   }
 

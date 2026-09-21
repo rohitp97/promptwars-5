@@ -31,6 +31,22 @@ and shows the exact words in the notice behind every point, checked by code.
 4. **Works without AI**: if Gemini is unavailable, slow, or returns something unusable, a
    rule-based reader takes over, clearly labelled. Its claims go through the *same* verifier.
 
+## How it maps to the brief
+
+| The brief asks for | What Cited does | Where |
+|---|---|---|
+| Simplify complex legal documents | Plain-language "what this is / what they want / what they say happens", in English or Hindi | `lib/prompts.ts`, `components/Findings.tsx` |
+| Highlight clauses, obligations, risks | Demands, deadlines, consequences and sender claims, each with its exact quote highlighted in the notice | `lib/verify.ts`, `components/SourceViewer.tsx` |
+| Understand options and next steps | Options and a do-now checklist from a curated, dated playbook; statutory windows computed from the receipt date | `data/playbook.ts`, `lib/deadlines.ts` |
+| Summaries, checklists, actionable outputs | Urgency banner, `.ics` calendar of deadlines, tick-off checklist, printable brief | `lib/ics.ts`, `lib/brief.ts` |
+| Prepare information and questions for a lawyer | One-page brief: facts, dates, quotes, documents to bring, questions to ask | `lib/brief.ts` |
+| **Trust: cite sources, admit missing information** (the organisers' emphasis) | Every claim is a verified quote, general guidance, or an explicit "not in your notice"; unverifiable claims are removed and listed | `lib/verify.ts`, `lib/analysis.ts` |
+| Assist, don't replace, professional advice | Never recommends an outcome; standing disclaimer; points to free legal aid (NALSA 15100) | `components/Chrome.tsx`, `data/playbook.ts` |
+
+**Deliberately not built:** free-form chat / Q&A over the document, and comparing two contracts.
+Cited answers the questions a person with a notice actually has, up front and each with its source,
+rather than offering a chat box. It analyses a single notice.
+
 ## Setup
 
 ```bash
@@ -74,9 +90,10 @@ console with a CSP error, add the host it names to `connect-src` there and in `i
 |---|---|
 | `npm run dev` | Vite dev server |
 | `npm run build` | typecheck + production build |
-| `npm test` | 240+ tests (Vitest + Testing Library) |
+| `npm test` | 360+ tests: logic, UI flows, axe accessibility, WCAG contrast (Vitest + Testing Library) |
 | `npm run test:coverage` | coverage report for `src/lib` and `src/hooks` |
 | `npm run lint` | oxlint |
+| `npm run format` / `format:check` | Prettier (write / verify) over `src` |
 
 ## Trust layer in one paragraph
 
@@ -140,5 +157,5 @@ src/
 ├── data/       playbook · samples
 ├── hooks/      useCase
 ├── components/ Intake · TranscriptReview · Results · Findings · SourceViewer · …
-└── __tests__/  240+ tests
+└── __tests__/  360+ tests
 ```

@@ -13,13 +13,33 @@ const samples = buildSamples(TODAY)
 const byId = (id: string) => samples.find((s) => s.id === id)!
 
 const blank = (over: Partial<AnalysisResponse> = {}): AnalysisResponse => ({
-  noticeType: 'cheque_bounce', documentLanguage: 'English', noticeDate: null, noticeDateQuote: null,
-  whatItIs: [], demands: [], senderClaims: [], consequences: [], options: [], doNow: [],
-  deadlines: [], notStated: [], lawyerQuestions: [], ...over,
+  noticeType: 'cheque_bounce',
+  documentLanguage: 'English',
+  noticeDate: null,
+  noticeDateQuote: null,
+  whatItIs: [],
+  demands: [],
+  senderClaims: [],
+  consequences: [],
+  options: [],
+  doNow: [],
+  deadlines: [],
+  notStated: [],
+  lawyerQuestions: [],
+  ...over,
 })
 
 const run = (response: AnalysisResponse, text: string, over = {}) =>
-  assembleResult({ response, malformed: 0, sourceText: text, receivedOn: '2026-10-10', today: TODAY, source: 'gemini', fallbackReason: null, ...over })
+  assembleResult({
+    response,
+    malformed: 0,
+    sourceText: text,
+    receivedOn: '2026-10-10',
+    today: TODAY,
+    source: 'gemini',
+    fallbackReason: null,
+    ...over,
+  })
 
 describe('assembleResult — trust layer end to end', () => {
   const text = byId('cheque').text
@@ -27,10 +47,27 @@ describe('assembleResult — trust layer end to end', () => {
   it('keeps verified claims, removes invented ones, and counts both', () => {
     const r = run(
       blank({
-        whatItIs: [{ text: 'A cheque-bounce demand.', why: null, quote: 'LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881', playbookRef: null }],
+        whatItIs: [
+          {
+            text: 'A cheque-bounce demand.',
+            why: null,
+            quote: 'LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881',
+            playbookRef: null,
+          },
+        ],
         demands: [
-          { text: 'Pay Rs. 1,50,000.', why: null, quote: 'pay the said sum of Rs. 1,50,000/- to my client within 15 days', playbookRef: null },
-          { text: 'Pay Rs. 9,00,000.', why: null, quote: 'you must pay Rs. 9,00,000 by Friday without exception', playbookRef: null },
+          {
+            text: 'Pay Rs. 1,50,000.',
+            why: null,
+            quote: 'pay the said sum of Rs. 1,50,000/- to my client within 15 days',
+            playbookRef: null,
+          },
+          {
+            text: 'Pay Rs. 9,00,000.',
+            why: null,
+            quote: 'you must pay Rs. 9,00,000 by Friday without exception',
+            playbookRef: null,
+          },
         ],
         options: [
           { text: 'Pay within the window.', why: null, quote: null, playbookRef: 'cheque_bounce.opt.pay' },
@@ -50,7 +87,16 @@ describe('assembleResult — trust layer end to end', () => {
   it('computes both the stated and the statutory dates from the receipt date', () => {
     const r = run(
       blank({
-        deadlines: [{ label: 'Pay Rs. 1,50,000', quote: 'within 15 days of receipt of this notice', kind: 'relative', date: null, days: 15, from: 'receipt' }],
+        deadlines: [
+          {
+            label: 'Pay Rs. 1,50,000',
+            quote: 'within 15 days of receipt of this notice',
+            kind: 'relative',
+            date: null,
+            days: 15,
+            from: 'receipt',
+          },
+        ],
       }),
       text,
     )
@@ -75,7 +121,13 @@ describe('assembleResult — trust layer end to end', () => {
   })
 
   it('rejects a playbook ref that belongs to a different notice type', () => {
-    const r = run(blank({ noticeType: 'eviction_rent', options: [{ text: 'x', why: null, quote: null, playbookRef: 'cheque_bounce.opt.pay' }] }), text)
+    const r = run(
+      blank({
+        noticeType: 'eviction_rent',
+        options: [{ text: 'x', why: null, quote: null, playbookRef: 'cheque_bounce.opt.pay' }],
+      }),
+      text,
+    )
     expect(r.findings.options).toHaveLength(0)
     expect(r.removed[0].reason).toMatch(/not in the built-in playbook/)
   })
@@ -86,7 +138,10 @@ describe('assembleResult — trust layer end to end', () => {
   })
 
   it('does not duplicate a NOT FOUND deadline entry the model already gave', () => {
-    const r = run(blank({ notStated: [{ question: 'What is the deadline?', whyItMatters: 'x' }] }), 'No timing here at all in this text.')
+    const r = run(
+      blank({ notStated: [{ question: 'What is the deadline?', whyItMatters: 'x' }] }),
+      'No timing here at all in this text.',
+    )
     expect(r.notStated.filter((n) => /deadline/i.test(n.question))).toHaveLength(1)
   })
 
@@ -104,7 +159,12 @@ describe('assembleResult — trust layer end to end', () => {
   })
 
   it('flags an answer as unusable when nothing survives verification', () => {
-    const r = run(blank({ demands: [{ text: 'x', why: null, quote: 'entirely fabricated sentence about money', playbookRef: null }] }), text)
+    const r = run(
+      blank({
+        demands: [{ text: 'x', why: null, quote: 'entirely fabricated sentence about money', playbookRef: null }],
+      }),
+      text,
+    )
     expect(isUnusable(r)).toBe(true)
     expect(isUnusable(run(blank(), text))).toBe(false)
   })
@@ -113,13 +173,19 @@ describe('assembleResult — trust layer end to end', () => {
 describe('verifyNoticeDate', () => {
   const src = prepareSource(`Date: 6 October 2026\n\nYou must pay.`)
   it('accepts a date backed by a verified quote that contains it', () => {
-    expect(verifyNoticeDate(blank({ noticeDate: '2026-10-06', noticeDateQuote: 'Date: 6 October 2026' }), src)).toBe('2026-10-06')
+    expect(verifyNoticeDate(blank({ noticeDate: '2026-10-06', noticeDateQuote: 'Date: 6 October 2026' }), src)).toBe(
+      '2026-10-06',
+    )
   })
   it('rejects a date the quote does not contain', () => {
-    expect(verifyNoticeDate(blank({ noticeDate: '2026-10-07', noticeDateQuote: 'Date: 6 October 2026' }), src)).toBeNull()
+    expect(
+      verifyNoticeDate(blank({ noticeDate: '2026-10-07', noticeDateQuote: 'Date: 6 October 2026' }), src),
+    ).toBeNull()
   })
   it('rejects a date with a fabricated quote or no quote', () => {
-    expect(verifyNoticeDate(blank({ noticeDate: '2026-10-06', noticeDateQuote: 'Dated the sixth day of October' }), src)).toBeNull()
+    expect(
+      verifyNoticeDate(blank({ noticeDate: '2026-10-06', noticeDateQuote: 'Dated the sixth day of October' }), src),
+    ).toBeNull()
     expect(verifyNoticeDate(blank({ noticeDate: '2026-10-06', noticeDateQuote: null }), src)).toBeNull()
     expect(verifyNoticeDate(blank({ noticeDate: null, noticeDateQuote: 'Date: 6 October 2026' }), src)).toBeNull()
   })
@@ -127,7 +193,11 @@ describe('verifyNoticeDate', () => {
 
 describe('detectNoticeType and the bundled samples', () => {
   it.each([
-    ['cheque', 'cheque_bounce'], ['cheque-hi', 'cheque_bounce'], ['rent', 'eviction_rent'], ['bank', 'loan_recovery'], ['other', 'other'],
+    ['cheque', 'cheque_bounce'],
+    ['cheque-hi', 'cheque_bounce'],
+    ['rent', 'eviction_rent'],
+    ['bank', 'loan_recovery'],
+    ['other', 'other'],
   ])('sample %s is detected as %s', (id, type) => {
     expect(detectNoticeType(byId(id).text).type).toBe(type)
   })
@@ -139,12 +209,15 @@ describe('detectNoticeType and the bundled samples', () => {
 })
 
 describe('rule-based fallback goes through the same verifier', () => {
-  it.each(samples.filter((s) => s.id !== 'other').map((s) => [s.id, s.text]))('%s: every fallback claim verifies', (_id, text) => {
-    const r = run(buildFallbackResponse(text), text, { source: 'fallback' })
-    expect(r.removed).toEqual([])
-    expect(r.summary.verified + r.summary.approximate).toBeGreaterThan(0)
-    expect(r.deadlines.some((d) => d.origin === 'notice')).toBe(true)
-  })
+  it.each(samples.filter((s) => s.id !== 'other').map((s) => [s.id, s.text]))(
+    '%s: every fallback claim verifies',
+    (_id, text) => {
+      const r = run(buildFallbackResponse(text), text, { source: 'fallback' })
+      expect(r.removed).toEqual([])
+      expect(r.summary.verified + r.summary.approximate).toBeGreaterThan(0)
+      expect(r.deadlines.some((d) => d.origin === 'notice')).toBe(true)
+    },
+  )
 
   it('finds the 15-day limit, the amount and the notice date in the English cheque sample', () => {
     const text = byId('cheque').text
@@ -188,12 +261,34 @@ describe('end to end with a raw model payload', () => {
   it('parses, verifies and resolves a realistic Gemini-shaped response', () => {
     const text = byId('rent').text
     const raw = {
-      noticeType: 'eviction_rent', documentLanguage: 'English', noticeDate: '2026-10-08', noticeDateQuote: 'Date: 8 October 2026',
-      whatItIs: [{ text: 'Your landlord wants you to leave.', why: null, quote: 'I hereby terminate your tenancy and require you to vacate the premises', playbookRef: null }],
-      demands: [{ text: 'Leave by 11 November.', why: null, quote: 'on or before 11 November 2026', playbookRef: null }],
+      noticeType: 'eviction_rent',
+      documentLanguage: 'English',
+      noticeDate: '2026-10-08',
+      noticeDateQuote: 'Date: 8 October 2026',
+      whatItIs: [
+        {
+          text: 'Your landlord wants you to leave.',
+          why: null,
+          quote: 'I hereby terminate your tenancy and require you to vacate the premises',
+          playbookRef: null,
+        },
+      ],
+      demands: [
+        { text: 'Leave by 11 November.', why: null, quote: 'on or before 11 November 2026', playbookRef: null },
+      ],
       options: [{ text: 'Reply in writing.', why: null, quote: null, playbookRef: 'eviction_rent.opt.reply' }],
-      deadlines: [{ label: 'Vacate', quote: 'on or before 11 November 2026', kind: 'absolute', date: '2026-11-11', days: null, from: null }],
-      notStated: [], lawyerQuestions: ['Is the notice period valid?'],
+      deadlines: [
+        {
+          label: 'Vacate',
+          quote: 'on or before 11 November 2026',
+          kind: 'absolute',
+          date: '2026-11-11',
+          days: null,
+          from: null,
+        },
+      ],
+      notStated: [],
+      lawyerQuestions: ['Is the notice period valid?'],
     }
     const parsed = parseAnalysis(raw)
     expect(parsed).not.toBeNull()

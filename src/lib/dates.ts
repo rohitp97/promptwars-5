@@ -11,8 +11,18 @@ const MIN_YEAR = 1900
 const MAX_YEAR = 2200
 
 const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ]
 
 export function isLeapYear(y: number): boolean {
@@ -84,7 +94,7 @@ export function addMonths(iso: IsoDate, months: number): IsoDate {
   const { y, m, d } = mustParse(iso)
   const total = y * 12 + (m - 1) + months
   const ny = Math.floor(total / 12)
-  const nm = (total % 12 + 12) % 12 + 1
+  const nm = (((total % 12) + 12) % 12) + 1
   return format({ y: ny, m: nm, d: Math.min(d, daysInMonth(ny, nm)) })
 }
 

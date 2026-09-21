@@ -61,7 +61,13 @@ function summarise(
   }
   for (const section of FINDING_SECTIONS) findings[section].forEach((f) => count(f.provenance))
   deadlines.forEach((d) => count(d.provenance))
-  return { checked: verified + approximate + playbook + removedCount, verified, approximate, playbook, removed: removedCount }
+  return {
+    checked: verified + approximate + playbook + removedCount,
+    verified,
+    approximate,
+    playbook,
+    removed: removedCount,
+  }
 }
 
 /** NOT FOUND entries the code can be certain of, added on top of what the model lists. */
@@ -84,13 +90,15 @@ function deriveNotStated(
   if (findMoney(sourceText) === null && !mentions(AMOUNT_WORDS)) {
     out.push({
       question: 'Does the notice state an amount?',
-      whyItMatters: 'No sum of money was found. If you are being asked to pay, you will want the exact figure and how it was worked out.',
+      whyItMatters:
+        'No sum of money was found. If you are being asked to pay, you will want the exact figure and how it was worked out.',
     })
   }
   if (noticeDate === null && !mentions(DATE_WORDS)) {
     out.push({
       question: 'Does the notice show its own date?',
-      whyItMatters: 'A notice date could not be confirmed. Some time limits count from it, so the app used the date you said you received it.',
+      whyItMatters:
+        'A notice date could not be confirmed. Some time limits count from it, so the app used the date you said you received it.',
     })
   }
   return out

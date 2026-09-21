@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { LIMITS, parseAnalysis } from '../lib/validation'
 
 const finding = (over: Record<string, unknown> = {}) => ({
-  text: 'You are asked to pay Rs. 50,000.', why: null, quote: 'pay Rs. 50,000 within 15 days', playbookRef: null, ...over,
+  text: 'You are asked to pay Rs. 50,000.',
+  why: null,
+  quote: 'pay Rs. 50,000 within 15 days',
+  playbookRef: null,
+  ...over,
 })
 
 const valid = (over: Record<string, unknown> = {}) => ({
@@ -12,8 +16,14 @@ const valid = (over: Record<string, unknown> = {}) => ({
   noticeDate: null,
   noticeDateQuote: null,
   whatItIs: [finding()],
-  demands: [], senderClaims: [], consequences: [], options: [], doNow: [],
-  deadlines: [{ label: 'Pay', quote: 'within 15 days of receipt', kind: 'relative', date: null, days: 15, from: 'receipt' }],
+  demands: [],
+  senderClaims: [],
+  consequences: [],
+  options: [],
+  doNow: [],
+  deadlines: [
+    { label: 'Pay', quote: 'within 15 days of receipt', kind: 'relative', date: null, days: 15, from: 'receipt' },
+  ],
   notStated: [{ question: 'Which cheque?', whyItMatters: 'No number given.' }],
   lawyerQuestions: ['Was the notice sent in time?'],
   ...over,
@@ -28,7 +38,11 @@ describe('parseAnalysis — structure', () => {
   })
 
   it.each([
-    ['null', null], ['undefined', undefined], ['a string', 'json'], ['a number', 42], ['an array', []],
+    ['null', null],
+    ['undefined', undefined],
+    ['a string', 'json'],
+    ['a number', 42],
+    ['an array', []],
   ])('rejects %s', (_n, raw) => {
     expect(parseAnalysis(raw)).toBeNull()
   })
@@ -61,15 +75,21 @@ describe('parseAnalysis — structure', () => {
 
 describe('parseAnalysis — items', () => {
   it('drops malformed findings and counts them', () => {
-    const r = parseAnalysis(valid({
-      demands: [finding(), { why: 'no text' }, 'string', null, finding({ quote: 5 }), finding({ text: '' })],
-    }))
+    const r = parseAnalysis(
+      valid({
+        demands: [finding(), { why: 'no text' }, 'string', null, finding({ quote: 5 }), finding({ text: '' })],
+      }),
+    )
     expect(r?.response.demands).toHaveLength(1)
     expect(r?.malformed).toBe(5)
   })
 
   it('rejects findings with over-long fields', () => {
-    const r = parseAnalysis(valid({ demands: [finding({ text: 'x'.repeat(LIMITS.text + 1) }), finding({ quote: 'q'.repeat(LIMITS.quote + 1) })] }))
+    const r = parseAnalysis(
+      valid({
+        demands: [finding({ text: 'x'.repeat(LIMITS.text + 1) }), finding({ quote: 'q'.repeat(LIMITS.quote + 1) })],
+      }),
+    )
     expect(r?.response.demands).toHaveLength(0)
     expect(r?.malformed).toBe(2)
   })
@@ -102,12 +122,14 @@ describe('parseAnalysis — items', () => {
   })
 
   it('nulls an impossible date and a fractional day count instead of trusting them', () => {
-    const r = parseAnalysis(valid({
-      deadlines: [
-        { label: 'a', quote: 'q'.repeat(12), kind: 'absolute', date: '2026-02-30' },
-        { label: 'b', quote: 'q'.repeat(12), kind: 'relative', days: 7.5, from: 'receipt' },
-      ],
-    }))
+    const r = parseAnalysis(
+      valid({
+        deadlines: [
+          { label: 'a', quote: 'q'.repeat(12), kind: 'absolute', date: '2026-02-30' },
+          { label: 'b', quote: 'q'.repeat(12), kind: 'relative', days: 7.5, from: 'receipt' },
+        ],
+      }),
+    )
     expect(r?.response.deadlines[0].date).toBeNull()
     expect(r?.response.deadlines[1].days).toBeNull()
   })

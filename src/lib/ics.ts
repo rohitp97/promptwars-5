@@ -35,7 +35,10 @@ export function foldLine(line: string): string {
 const compact = (iso: string): string => iso.replace(/-/g, '')
 
 function stamp(now: Date): string {
-  return now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
+  return now
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}Z$/, 'Z')
 }
 
 /**
@@ -46,10 +49,18 @@ export function buildIcs(result: AnalysisResult, now: Date = new Date()): string
   const upcoming = result.deadlines.filter((d) => d.date !== null && d.date >= result.analysedOn)
   if (upcoming.length === 0) return null
 
-  const lines: string[] = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Cited//Legal notice deadlines//EN', 'CALSCALE:GREGORIAN']
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Cited//Legal notice deadlines//EN',
+    'CALSCALE:GREGORIAN',
+  ]
   for (const d of upcoming) {
     const date = d.date as string
-    const note = d.origin === 'statute' ? 'General information from the Cited playbook, not from your notice.' : 'Stated in your notice.'
+    const note =
+      d.origin === 'statute'
+        ? 'General information from the Cited playbook, not from your notice.'
+        : 'Stated in your notice.'
     lines.push(
       'BEGIN:VEVENT',
       `UID:${d.id}-${compact(date)}@cited.app`,

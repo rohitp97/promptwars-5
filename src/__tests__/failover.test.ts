@@ -27,17 +27,29 @@ import {
 } from '../lib/ai'
 
 // Real error texts captured from Google while building this app.
-const GONE = '[404 ] This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.6-flash. (AI/fetch-error)'
-const BUSY = '[500 ] This model is currently experiencing high demand. Spikes in demand are usually temporary. (AI/fetch-error)'
-const NOT_ENABLED = "AI: The Firebase AI SDK requires the Firebase AI API ('firebasevertexai.googleapis.com') to be enabled in your Firebase project. (AI/api-not-enabled)"
-const FORBIDDEN = '[403 ] Firebase AI Logic API has not been used in project 1 before or it is disabled. PERMISSION_DENIED'
+const GONE =
+  '[404 ] This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.6-flash. (AI/fetch-error)'
+const BUSY =
+  '[500 ] This model is currently experiencing high demand. Spikes in demand are usually temporary. (AI/fetch-error)'
+const NOT_ENABLED =
+  "AI: The Firebase AI SDK requires the Firebase AI API ('firebasevertexai.googleapis.com') to be enabled in your Firebase project. (AI/api-not-enabled)"
+const FORBIDDEN =
+  '[403 ] Firebase AI Logic API has not been used in project 1 before or it is disabled. PERMISSION_DENIED'
 
 let warn: ReturnType<typeof vi.spyOn>
 
 beforeEach(() => {
   resetModelPreference()
   vi.unstubAllEnvs()
-  for (const k of ['VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_APP_ID', 'VITE_GEMINI_API_KEY', 'VITE_GEMINI_MODEL', 'VITE_ALLOW_CLIENT_KEY', 'VITE_USE_FIREBASE_AI']) {
+  for (const k of [
+    'VITE_FIREBASE_API_KEY',
+    'VITE_FIREBASE_PROJECT_ID',
+    'VITE_FIREBASE_APP_ID',
+    'VITE_GEMINI_API_KEY',
+    'VITE_GEMINI_MODEL',
+    'VITE_ALLOW_CLIENT_KEY',
+    'VITE_USE_FIREBASE_AI',
+  ]) {
     vi.stubEnv(k, '')
   }
   vi.clearAllMocks()
@@ -210,7 +222,11 @@ describe('remembering the model that worked', () => {
   })
 
   it('does not remember a model that failed, or one that is not in the configured list', async () => {
-    await expect(withModelFailover(['a'], async () => { throw new Error(BUSY) })).rejects.toThrow()
+    await expect(
+      withModelFailover(['a'], async () => {
+        throw new Error(BUSY)
+      }),
+    ).rejects.toThrow()
     expect(orderModels(['a', 'b'])).toEqual(['a', 'b'])
     await withModelFailover(['x'], async () => 'ok')
     expect(orderModels(['a', 'b'])).toEqual(['a', 'b'])
@@ -259,8 +275,14 @@ describe('providers use the chain', () => {
     vi.stubEnv('VITE_FIREBASE_API_KEY', 'k')
     vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'p')
     vi.stubEnv('VITE_FIREBASE_APP_ID', 'a')
-    fbase.getGenerativeModel.mockReturnValue({ generateContent: async () => { throw new Error(NOT_ENABLED) } })
-    await expect(createAiProvider()!.generate({ systemInstruction: 's', prompt: 'p', json: true })).rejects.toThrow(/api-not-enabled/)
+    fbase.getGenerativeModel.mockReturnValue({
+      generateContent: async () => {
+        throw new Error(NOT_ENABLED)
+      },
+    })
+    await expect(createAiProvider()!.generate({ systemInstruction: 's', prompt: 'p', json: true })).rejects.toThrow(
+      /api-not-enabled/,
+    )
     expect(fbase.getGenerativeModel).toHaveBeenCalledTimes(1)
   })
 })

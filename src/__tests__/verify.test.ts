@@ -124,7 +124,13 @@ describe('verifyQuote', () => {
 describe('verifyFinding', () => {
   const src = prepareSource(NOTICE)
   const refs = new Map([['cheque_bounce.opt.pay', 'Cheque bounce playbook · Pay within the window']])
-  const f = (over: Partial<RawFinding>): RawFinding => ({ text: 'x', why: null, quote: null, playbookRef: null, ...over })
+  const f = (over: Partial<RawFinding>): RawFinding => ({
+    text: 'x',
+    why: null,
+    quote: null,
+    playbookRef: null,
+    ...over,
+  })
 
   it('accepts a finding with a verified quote as DOCUMENT provenance', () => {
     const r = verifyFinding('demands', f({ quote: 'pay the said sum of Rs. 1,50,000' }), src, refs)
@@ -137,7 +143,12 @@ describe('verifyFinding', () => {
   })
 
   it('does NOT let a valid playbook ref rescue a failed quote', () => {
-    const r = verifyFinding('options', f({ quote: 'a sentence the notice never contains', playbookRef: 'cheque_bounce.opt.pay' }), src, refs)
+    const r = verifyFinding(
+      'options',
+      f({ quote: 'a sentence the notice never contains', playbookRef: 'cheque_bounce.opt.pay' }),
+      src,
+      refs,
+    )
     expect(r.ok).toBe(false)
   })
 
@@ -168,8 +179,18 @@ describe('verifyFindings', () => {
   it('sorts kept findings into sections and lists removed ones with reasons', () => {
     const src = prepareSource(NOTICE)
     const empty = emptyFindings()
-    const good: RawFinding = { text: 'Pay the sum', why: null, quote: 'to pay the said sum of Rs. 1,50,000', playbookRef: null }
-    const bad: RawFinding = { text: 'Invented', why: null, quote: 'this sentence was invented by a model', playbookRef: null }
+    const good: RawFinding = {
+      text: 'Pay the sum',
+      why: null,
+      quote: 'to pay the said sum of Rs. 1,50,000',
+      playbookRef: null,
+    }
+    const bad: RawFinding = {
+      text: 'Invented',
+      why: null,
+      quote: 'this sentence was invented by a model',
+      playbookRef: null,
+    }
     const { findings, removed } = verifyFindings({ ...emptyRaw(), demands: [good, bad] }, src, new Map())
     expect(findings.demands).toHaveLength(1)
     expect(findings.demands[0].id).toBe('demands-0')

@@ -49,11 +49,14 @@ export function buildBriefMarkdown(result: AnalysisResult): string {
   out.push('## Key dates', '')
   if (result.deadlines.length === 0) out.push('_No dates could be worked out from the notice._')
   for (const d of result.deadlines) {
-    const when = d.date ? `${formatLong(d.date)} (${describeDaysLeft(diffDays(result.analysedOn, d.date))})` : 'date not computable'
+    const when = d.date
+      ? `${formatLong(d.date)} (${describeDaysLeft(diffDays(result.analysedOn, d.date))})`
+      : 'date not computable'
     const src = d.origin === 'notice' ? 'in the notice' : 'general rule'
     out.push(`- **${oneLine(d.label)}** — ${when} — _${src}_. ${oneLine(d.basis)}`)
   }
-  if (dated.length === 0 && result.deadlines.length > 0) out.push('', '_None of these could be turned into a calendar date._')
+  if (dated.length === 0 && result.deadlines.length > 0)
+    out.push('', '_None of these could be turned into a calendar date._')
   out.push('')
 
   for (const section of ORDER) {

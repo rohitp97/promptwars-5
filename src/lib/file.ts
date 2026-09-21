@@ -21,7 +21,8 @@ const BY_EXTENSION: Record<string, string> = {
   txt: 'text/plain',
 }
 
-export const ACCEPT_ATTRIBUTE = '.png,.jpg,.jpeg,.webp,.pdf,.txt,image/png,image/jpeg,image/webp,application/pdf,text/plain'
+export const ACCEPT_ATTRIBUTE =
+  '.png,.jpg,.jpeg,.webp,.pdf,.txt,image/png,image/jpeg,image/webp,application/pdf,text/plain'
 
 /**
  * Allow-list check before anything is read or sent anywhere. Some browsers report an empty MIME
@@ -30,13 +31,19 @@ export const ACCEPT_ATTRIBUTE = '.png,.jpg,.jpeg,.webp,.pdf,.txt,image/png,image
 export function checkFile(file: { name: string; type: string; size: number }): FileCheck {
   if (file.size === 0) return { ok: false, message: 'That file is empty.' }
   if (file.size > MAX_FILE_BYTES) {
-    return { ok: false, message: `That file is larger than ${MAX_FILE_BYTES / 1024 / 1024} MB. Try a smaller photo or fewer pages.` }
+    return {
+      ok: false,
+      message: `That file is larger than ${MAX_FILE_BYTES / 1024 / 1024} MB. Try a smaller photo or fewer pages.`,
+    }
   }
-  const ext = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() ?? '' : ''
+  const ext = file.name.includes('.') ? (file.name.split('.').pop()?.toLowerCase() ?? '') : ''
   const mimeType = file.type || BY_EXTENSION[ext] || ''
   const kind = BY_MIME[mimeType]
   if (!kind) {
-    return { ok: false, message: 'Please upload a photo (PNG, JPG, WebP), a PDF, or a .txt file — or paste the text instead.' }
+    return {
+      ok: false,
+      message: 'Please upload a photo (PNG, JPG, WebP), a PDF, or a .txt file — or paste the text instead.',
+    }
   }
   return { ok: true, kind, mimeType }
 }

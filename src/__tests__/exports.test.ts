@@ -17,13 +17,26 @@ const TODAY = '2026-10-12'
 const samples = buildSamples(TODAY)
 const analyse = (id: string, receivedOn = '2026-10-10', today = TODAY): AnalysisResult => {
   const text = samples.find((s) => s.id === id)!.text
-  return assembleResult({ response: buildFallbackResponse(text), malformed: 0, sourceText: text, receivedOn, today, source: 'fallback', fallbackReason: 'test' })
+  return assembleResult({
+    response: buildFallbackResponse(text),
+    malformed: 0,
+    sourceText: text,
+    receivedOn,
+    today,
+    source: 'fallback',
+    fallbackReason: 'test',
+  })
 }
 
 describe('extract helpers', () => {
   it('does not split sentences at Indian abbreviations', () => {
-    const s = splitSentences('You issued cheque no. 4512 for Rs. 1,50,000/- to Mr. A. K. Verma. Please pay within 15 days.')
-    expect(s).toEqual(['You issued cheque no. 4512 for Rs. 1,50,000/- to Mr. A. K. Verma.', 'Please pay within 15 days.'])
+    const s = splitSentences(
+      'You issued cheque no. 4512 for Rs. 1,50,000/- to Mr. A. K. Verma. Please pay within 15 days.',
+    )
+    expect(s).toEqual([
+      'You issued cheque no. 4512 for Rs. 1,50,000/- to Mr. A. K. Verma.',
+      'Please pay within 15 days.',
+    ])
   })
 
   it('returns slices of the original text (so they verify as quotes)', () => {
@@ -61,7 +74,11 @@ describe('extract helpers', () => {
   })
 
   it('extracts dates in three formats, ignoring impossible ones', () => {
-    expect(extractDates('on 5 November 2026 and 06/11/2026 and December 7, 2026')).toEqual(['2026-11-05', '2026-11-06', '2026-12-07'])
+    expect(extractDates('on 5 November 2026 and 06/11/2026 and December 7, 2026')).toEqual([
+      '2026-11-05',
+      '2026-11-06',
+      '2026-12-07',
+    ])
     expect(extractDates('on 31/02/2026 or 15th Octember 2026')).toEqual([])
   })
 })
@@ -73,7 +90,9 @@ describe('buildIcs', () => {
   it('produces a valid calendar with CRLF line endings and one event per dated upcoming deadline', () => {
     expect(ics.startsWith('BEGIN:VCALENDAR\r\n')).toBe(true)
     expect(ics.endsWith('END:VCALENDAR\r\n')).toBe(true)
-    expect((ics.match(/BEGIN:VEVENT/g) ?? []).length).toBe(result.deadlines.filter((d) => d.date && d.date >= TODAY).length)
+    expect((ics.match(/BEGIN:VEVENT/g) ?? []).length).toBe(
+      result.deadlines.filter((d) => d.date && d.date >= TODAY).length,
+    )
     expect(ics).toContain('DTSTART;VALUE=DATE:20261025')
     expect(ics).toContain('DTEND;VALUE=DATE:20261026')
     expect(ics).toContain('DTSTAMP:20261012T050000Z')
@@ -158,24 +177,56 @@ describe('segmentText', () => {
 
   it('splits around a range and marks the active one', () => {
     const segs = segmentText('abcdefghij', [{ id: 'a', start: 2, end: 5 }], 'a')
-    expect(segs.map((s) => [s.text, s.active])).toEqual([['ab', false], ['cde', true], ['fghij', false]])
+    expect(segs.map((s) => [s.text, s.active])).toEqual([
+      ['ab', false],
+      ['cde', true],
+      ['fghij', false],
+    ])
   })
 
   it('handles overlapping and nested ranges', () => {
-    const segs = segmentText('0123456789', [{ id: 'a', start: 0, end: 6 }, { id: 'b', start: 4, end: 9 }], 'b')
-    expect(segs.map((s) => [s.text, s.ids.join('+')])).toEqual([['0123', 'a'], ['45', 'a+b'], ['678', 'b'], ['9', '']])
+    const segs = segmentText(
+      '0123456789',
+      [
+        { id: 'a', start: 0, end: 6 },
+        { id: 'b', start: 4, end: 9 },
+      ],
+      'b',
+    )
+    expect(segs.map((s) => [s.text, s.ids.join('+')])).toEqual([
+      ['0123', 'a'],
+      ['45', 'a+b'],
+      ['678', 'b'],
+      ['9', ''],
+    ])
     expect(segs.filter((s) => s.active).map((s) => s.text)).toEqual(['45', '678'])
   })
 
   it('ignores out-of-bounds, empty and non-integer ranges and clamps overruns', () => {
-    const segs = segmentText('abcd', [{ id: 'x', start: 10, end: 20 }, { id: 'y', start: 2, end: 2 }, { id: 'z', start: 1.5, end: 3 }, { id: 'w', start: 3, end: 99 }], null)
+    const segs = segmentText(
+      'abcd',
+      [
+        { id: 'x', start: 10, end: 20 },
+        { id: 'y', start: 2, end: 2 },
+        { id: 'z', start: 1.5, end: 3 },
+        { id: 'w', start: 3, end: 99 },
+      ],
+      null,
+    )
     expect(segs.map((s) => s.text).join('')).toBe('abcd')
     expect(segs.at(-1)).toMatchObject({ text: 'd', ids: ['w'] })
   })
 
   it('reassembles to exactly the original text', () => {
     const text = 'नमूना notice — 𝒜 text'
-    const segs = segmentText(text, [{ id: 'a', start: 3, end: 9 }, { id: 'b', start: 6, end: 12 }], null)
+    const segs = segmentText(
+      text,
+      [
+        { id: 'a', start: 3, end: 9 },
+        { id: 'b', start: 6, end: 12 },
+      ],
+      null,
+    )
     expect(segs.map((s) => s.text).join('')).toBe(text)
   })
 })

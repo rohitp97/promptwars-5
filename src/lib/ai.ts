@@ -1,4 +1,5 @@
 import type { AiProvider, AiRequest } from '../types'
+import { anyOf } from './regex'
 import { withTimeout } from './withTimeout'
 
 /**
@@ -38,8 +39,18 @@ export function readModels(): string[] {
  * "high demand"), rate-limited on its own quota (429), or simply slow. Setup errors (403, bad key,
  * API not enabled) are deliberately absent: no other model can fix those, so they surface at once.
  */
-const SWITCH_MODEL_RE =
-  /\b(404|429|500|502|503|504)\b|not[ _]found|no longer available|is not supported|high demand|overloaded|unavailable|resource.?exhausted|quota|timed out/i
+const SWITCH_MODEL_RE = anyOf(
+  /\b(404|429|500|502|503|504)\b/,
+  /not[ _]found/,
+  /no longer available/,
+  /is not supported/,
+  /high demand/,
+  /overloaded/,
+  /unavailable/,
+  /resource.?exhausted/,
+  /quota/,
+  /timed out/,
+)
 
 /**
  * The model that most recently answered in this page session. An overloaded model can take ~20 s
@@ -148,7 +159,12 @@ function apiKeyProvider(apiKey: string): AiProvider {
       const { GoogleGenAI } = await import('@google/genai')
       const ai = new GoogleGenAI({ apiKey })
       const contents = req.file
-        ? [{ role: 'user', parts: [{ text: req.prompt }, { inlineData: { mimeType: req.file.mimeType, data: req.file.base64 } }] }]
+        ? [
+            {
+              role: 'user',
+              parts: [{ text: req.prompt }, { inlineData: { mimeType: req.file.mimeType, data: req.file.base64 } }],
+            },
+          ]
         : req.prompt
 
       return withModelFailover(readModels(), async (modelName) => {

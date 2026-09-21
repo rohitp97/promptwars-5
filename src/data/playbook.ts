@@ -96,7 +96,7 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
       {
         id: 'cheque_bounce.opt.settle',
         label: 'Negotiate a settlement',
-        text: 'These cases can be settled (compounded), including after a complaint is filed, usually with the court\'s permission and sometimes costs. Get any settlement in writing.',
+        text: "These cases can be settled (compounded), including after a complaint is filed, usually with the court's permission and sometimes costs. Get any settlement in writing.",
       },
     ],
     pitfalls: [
@@ -112,13 +112,25 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
       },
     ],
     documents: [
-      { id: 'cheque_bounce.doc.cheque', label: 'Cheque and return memo', text: 'A copy of the cheque and the bank\'s return memo' },
-      { id: 'cheque_bounce.doc.notice', label: 'Notice and delivery proof', text: 'The notice plus the envelope or courier receipt showing when it reached you' },
-      { id: 'cheque_bounce.doc.txn', label: 'Underlying transaction', text: 'Records of the underlying deal: invoice, agreement, messages' },
+      {
+        id: 'cheque_bounce.doc.cheque',
+        label: 'Cheque and return memo',
+        text: "A copy of the cheque and the bank's return memo",
+      },
+      {
+        id: 'cheque_bounce.doc.notice',
+        label: 'Notice and delivery proof',
+        text: 'The notice plus the envelope or courier receipt showing when it reached you',
+      },
+      {
+        id: 'cheque_bounce.doc.txn',
+        label: 'Underlying transaction',
+        text: 'Records of the underlying deal: invoice, agreement, messages',
+      },
       { id: 'cheque_bounce.doc.paid', label: 'Payments made', text: 'Proof of any payments already made' },
     ],
     lawyerQuestions: [
-      'Was the cheque presented within its validity period, and was this notice sent within 30 days of the bank\'s return memo?',
+      "Was the cheque presented within its validity period, and was this notice sent within 30 days of the bank's return memo?",
       'Do I have a defence that there was no legally enforceable debt or liability?',
       'Given the amount and my records, should I pay, reply, or negotiate a settlement?',
     ],
@@ -174,18 +186,38 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
       },
     ],
     pitfalls: [
-      { id: 'eviction_rent.pit.sign', label: 'Signing under pressure', text: 'Do not sign a "voluntary surrender" or a new agreement without reading it and taking advice.' },
-      { id: 'eviction_rent.pit.offset', label: 'Withholding rent', text: 'Do not stop paying rent to "adjust" against the deposit unless your agreement says so.' },
-      { id: 'eviction_rent.pit.verbal', label: 'Verbal promises', text: 'Get every promise, extension and settlement in writing.' },
+      {
+        id: 'eviction_rent.pit.sign',
+        label: 'Signing under pressure',
+        text: 'Do not sign a "voluntary surrender" or a new agreement without reading it and taking advice.',
+      },
+      {
+        id: 'eviction_rent.pit.offset',
+        label: 'Withholding rent',
+        text: 'Do not stop paying rent to "adjust" against the deposit unless your agreement says so.',
+      },
+      {
+        id: 'eviction_rent.pit.verbal',
+        label: 'Verbal promises',
+        text: 'Get every promise, extension and settlement in writing.',
+      },
     ],
     documents: [
-      { id: 'eviction_rent.doc.agreement', label: 'Rent agreement', text: 'The signed rent or leave-and-licence agreement' },
-      { id: 'eviction_rent.doc.receipts', label: 'Rent proof', text: 'Rent receipts and bank statements showing payments' },
+      {
+        id: 'eviction_rent.doc.agreement',
+        label: 'Rent agreement',
+        text: 'The signed rent or leave-and-licence agreement',
+      },
+      {
+        id: 'eviction_rent.doc.receipts',
+        label: 'Rent proof',
+        text: 'Rent receipts and bank statements showing payments',
+      },
       { id: 'eviction_rent.doc.deposit', label: 'Deposit proof', text: 'Proof of the security deposit paid' },
       { id: 'eviction_rent.doc.messages', label: 'Messages', text: 'Messages and emails with the landlord' },
     ],
     lawyerQuestions: [
-      'Which state\'s rent control law governs my tenancy, and does it protect me?',
+      "Which state's rent control law governs my tenancy, and does it protect me?",
       'Is the notice period in this notice valid under my agreement and state law?',
       'What is the safest way to make sure I get my security deposit back?',
     ],
@@ -220,10 +252,10 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
       },
       {
         id: 'loan_recovery.tl.drt',
-        label: 'Application to the Debts Recovery Tribunal: generally within 45 days of the bank\'s enforcement step',
+        label: "Application to the Debts Recovery Tribunal: generally within 45 days of the bank's enforcement step",
         anchor: 'event',
         statuteRef: 'SARFAESI Act s.17',
-        note: 'Counted from the bank\'s action, not from this notice, so no date is computed.',
+        note: "Counted from the bank's action, not from this notice, so no date is computed.",
       },
     ],
     options: [
@@ -244,17 +276,33 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
       },
     ],
     pitfalls: [
-      { id: 'loan_recovery.pit.ignore', label: 'Ignoring the notice', text: 'After the 60 days the bank can take possession of and sell secured assets.' },
-      { id: 'loan_recovery.pit.transfer', label: 'Selling the secured asset', text: 'After receiving the notice, do not sell, lease or transfer the secured asset without the bank\'s written consent (s.13(13)).' },
+      {
+        id: 'loan_recovery.pit.ignore',
+        label: 'Ignoring the notice',
+        text: 'After the 60 days the bank can take possession of and sell secured assets.',
+      },
+      {
+        id: 'loan_recovery.pit.transfer',
+        label: 'Selling the secured asset',
+        text: "After receiving the notice, do not sell, lease or transfer the secured asset without the bank's written consent (s.13(13)).",
+      },
     ],
     documents: [
       { id: 'loan_recovery.doc.agreement', label: 'Loan documents', text: 'Loan agreement and sanction letter' },
-      { id: 'loan_recovery.doc.statement', label: 'Statement of account', text: 'Statement of account and all repayment receipts' },
-      { id: 'loan_recovery.doc.letters', label: 'Correspondence', text: 'All letters and emails exchanged with the bank' },
+      {
+        id: 'loan_recovery.doc.statement',
+        label: 'Statement of account',
+        text: 'Statement of account and all repayment receipts',
+      },
+      {
+        id: 'loan_recovery.doc.letters',
+        label: 'Correspondence',
+        text: 'All letters and emails exchanged with the bank',
+      },
     ],
     lawyerQuestions: [
       'Is this notice valid, and was the account classified as an NPA correctly?',
-      'Can the bank\'s calculation of the dues be challenged?',
+      "Can the bank's calculation of the dues be challenged?",
       'Would a one-time settlement or restructuring make sense here?',
     ],
   },
@@ -263,7 +311,11 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
     title: 'Employment / termination notice',
     summary:
       'A notice from an employer about termination, notice period, bond recovery or breach. Your written contract drives most of the answers.',
-    authority: ['Your appointment letter / employment contract', 'Industrial Disputes Act, 1947 (for "workmen")', 'State Shops & Establishments Acts'],
+    authority: [
+      'Your appointment letter / employment contract',
+      'Industrial Disputes Act, 1947 (for "workmen")',
+      'State Shops & Establishments Acts',
+    ],
     signals: [
       { term: 'termination', weight: 3 },
       { term: 'terminated', weight: 3 },
@@ -304,11 +356,23 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
       },
     ],
     pitfalls: [
-      { id: 'employment_dispute.pit.sign', label: 'Signing under pressure', text: 'Do not sign a resignation letter or settlement release you have not read.' },
-      { id: 'employment_dispute.pit.records', label: 'Losing records', text: 'Save your emails, payslips and letters before you lose account access.' },
+      {
+        id: 'employment_dispute.pit.sign',
+        label: 'Signing under pressure',
+        text: 'Do not sign a resignation letter or settlement release you have not read.',
+      },
+      {
+        id: 'employment_dispute.pit.records',
+        label: 'Losing records',
+        text: 'Save your emails, payslips and letters before you lose account access.',
+      },
     ],
     documents: [
-      { id: 'employment_dispute.doc.letter', label: 'Appointment letter', text: 'Appointment letter and any amendments' },
+      {
+        id: 'employment_dispute.doc.letter',
+        label: 'Appointment letter',
+        text: 'Appointment letter and any amendments',
+      },
       { id: 'employment_dispute.doc.payslips', label: 'Payslips and PF', text: 'Payslips and PF statements' },
       { id: 'employment_dispute.doc.emails', label: 'Emails', text: 'Relevant emails with the employer' },
     ],
@@ -344,15 +408,31 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
       },
     ],
     options: [
-      { id: 'consumer_demand.opt.respond', label: 'Respond in writing', text: 'Reply in writing accepting or refusing the refund or repair, with reasons and dates.' },
-      { id: 'consumer_demand.opt.mediate', label: 'Consider mediation', text: 'The Act encourages mediation; a documented settlement can avoid a complaint.' },
+      {
+        id: 'consumer_demand.opt.respond',
+        label: 'Respond in writing',
+        text: 'Reply in writing accepting or refusing the refund or repair, with reasons and dates.',
+      },
+      {
+        id: 'consumer_demand.opt.mediate',
+        label: 'Consider mediation',
+        text: 'The Act encourages mediation; a documented settlement can avoid a complaint.',
+      },
     ],
     pitfalls: [
-      { id: 'consumer_demand.pit.ignore', label: 'Ignoring the notice', text: 'Ignoring it can lead to a complaint before the Consumer Commission where you would have to defend.' },
+      {
+        id: 'consumer_demand.pit.ignore',
+        label: 'Ignoring the notice',
+        text: 'Ignoring it can lead to a complaint before the Consumer Commission where you would have to defend.',
+      },
     ],
     documents: [
       { id: 'consumer_demand.doc.invoice', label: 'Invoice', text: 'Invoice or bill and any warranty card' },
-      { id: 'consumer_demand.doc.messages', label: 'Correspondence', text: 'Emails, chats and call records with the other side' },
+      {
+        id: 'consumer_demand.doc.messages',
+        label: 'Correspondence',
+        text: 'Emails, chats and call records with the other side',
+      },
       { id: 'consumer_demand.doc.photos', label: 'Photos', text: 'Photos or videos of the defect' },
     ],
     lawyerQuestions: [

@@ -1,6 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { GENERAL_GUIDANCE, NOTICE_TYPE_IDS, PLAYBOOK, buildRefIndex, getPlaybookEntry, isNoticeTypeId } from '../data/playbook'
+import {
+  GENERAL_GUIDANCE,
+  NOTICE_TYPE_IDS,
+  PLAYBOOK,
+  buildRefIndex,
+  getPlaybookEntry,
+  isNoticeTypeId,
+} from '../data/playbook'
 import { buildSamples } from '../data/samples'
 import { assembleResult } from '../lib/analysis'
 import { buildFallbackResponse } from '../lib/fallback'
@@ -94,7 +101,12 @@ describe('general guidance', () => {
   })
 
   it('is offered to the model in the prompt, with the rule that "other" may use it', () => {
-    const { prompt, systemInstruction } = buildAnalysisPrompt({ sourceText: 'x'.repeat(30), receivedOn: '2026-10-10', language: 'auto', hint: detectNoticeType('') })
+    const { prompt, systemInstruction } = buildAnalysisPrompt({
+      sourceText: 'x'.repeat(30),
+      receivedOn: '2026-10-10',
+      language: 'auto',
+      hint: detectNoticeType(''),
+    })
     for (const g of GENERAL_GUIDANCE) expect(prompt).toContain(g.id)
     expect(systemInstruction).toMatch(/"general"/)
   })
@@ -110,27 +122,53 @@ describe('"other" notices still get sourced next steps', () => {
   const samples = buildSamples('2026-10-12')
   const other = samples.find((s) => s.id === 'other')!.text
   const blank = (over: Partial<AnalysisResponse>): AnalysisResponse => ({
-    noticeType: 'other', documentLanguage: 'English', noticeDate: null, noticeDateQuote: null,
-    whatItIs: [], demands: [], senderClaims: [], consequences: [], options: [], doNow: [],
-    deadlines: [], notStated: [], lawyerQuestions: [], ...over,
+    noticeType: 'other',
+    documentLanguage: 'English',
+    noticeDate: null,
+    noticeDateQuote: null,
+    whatItIs: [],
+    demands: [],
+    senderClaims: [],
+    consequences: [],
+    options: [],
+    doNow: [],
+    deadlines: [],
+    notStated: [],
+    lawyerQuestions: [],
+    ...over,
   })
   const run = (response: AnalysisResponse, text = other) =>
-    assembleResult({ response, malformed: 0, sourceText: text, receivedOn: '2026-10-10', today: '2026-10-12', source: 'gemini', fallbackReason: null })
+    assembleResult({
+      response,
+      malformed: 0,
+      sourceText: text,
+      receivedOn: '2026-10-10',
+      today: '2026-10-12',
+      source: 'gemini',
+      fallbackReason: null,
+    })
 
   it('accepts do-now steps that cite general guidance', () => {
-    const r = run(blank({ doNow: [{ text: 'Keep everything.', why: null, quote: null, playbookRef: 'general.do.keep' }] }))
+    const r = run(
+      blank({ doNow: [{ text: 'Keep everything.', why: null, quote: null, playbookRef: 'general.do.keep' }] }),
+    )
     expect(r.findings.doNow).toHaveLength(1)
-    expect(r.findings.doNow[0].provenance).toMatchObject({ kind: 'playbook', refLabel: expect.stringContaining('General guidance') })
+    expect(r.findings.doNow[0].provenance).toMatchObject({
+      kind: 'playbook',
+      refLabel: expect.stringContaining('General guidance'),
+    })
     expect(r.removed).toEqual([])
   })
 
   it('still rejects unsourced advice and type-specific ids on an "other" notice', () => {
-    const r = run(blank({
-      doNow: [
-        { text: 'Consult an IP lawyer.', why: null, quote: null, playbookRef: null },
-        { text: 'Pay now.', why: null, quote: null, playbookRef: 'cheque_bounce.opt.pay' },
-      ],
-    }))
+    const r = run(
+      blank({
+        doNow: [
+          { text: 'Consult an IP lawyer.', why: null, quote: null, playbookRef: null },
+          { text: 'Pay now.', why: null, quote: null, playbookRef: 'cheque_bounce.opt.pay' },
+        ],
+      }),
+    )
     expect(r.findings.doNow).toHaveLength(0)
     expect(r.removed).toHaveLength(2)
   })
@@ -146,7 +184,9 @@ describe('"other" notices still get sourced next steps', () => {
     const r = run(buildFallbackResponse(other))
     expect(r.noticeType).toBe('other')
     expect(r.findings.doNow.length).toBeGreaterThanOrEqual(3)
-    expect(r.findings.doNow.every((f) => f.provenance.kind === 'playbook' || f.provenance.kind === 'document')).toBe(true)
+    expect(r.findings.doNow.every((f) => f.provenance.kind === 'playbook' || f.provenance.kind === 'document')).toBe(
+      true,
+    )
     expect(r.findings.options).toHaveLength(0)
     expect(r.removed).toEqual([])
   })
@@ -154,6 +194,8 @@ describe('"other" notices still get sourced next steps', () => {
   it('a typed notice does NOT get the general steps injected in fallback (its own steps are better)', () => {
     const cheque = samples.find((s) => s.id === 'cheque')!.text
     const r = run(buildFallbackResponse(cheque), cheque)
-    expect(r.findings.doNow.some((f) => f.provenance.kind === 'playbook' && f.provenance.ref.startsWith('general.'))).toBe(false)
+    expect(
+      r.findings.doNow.some((f) => f.provenance.kind === 'playbook' && f.provenance.ref.startsWith('general.')),
+    ).toBe(false)
   })
 })

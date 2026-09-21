@@ -7,9 +7,20 @@ import { buildIso, monthNumber } from './dates'
  */
 
 const WORD_NUMBERS: Record<string, number> = {
-  three: 3, five: 5, seven: 7, ten: 10, fourteen: 14, fifteen: 15, twenty: 20,
-  'twenty one': 21, 'twenty-one': 21, thirty: 30, 'forty five': 45, 'forty-five': 45,
-  sixty: 60, ninety: 90,
+  three: 3,
+  five: 5,
+  seven: 7,
+  ten: 10,
+  fourteen: 14,
+  fifteen: 15,
+  twenty: 20,
+  'twenty one': 21,
+  'twenty-one': 21,
+  thirty: 30,
+  'forty five': 45,
+  'forty-five': 45,
+  sixty: 60,
+  ninety: 90,
 }
 
 export function wordToNumber(word: string): number | null {
@@ -18,7 +29,8 @@ export function wordToNumber(word: string): number | null {
 }
 
 // Periods in these are not sentence ends: "Rs. 1,50,000", "cheque no. 4512", "Adv. S. Nair".
-const ABBREVIATION_RE = /\b(?:Rs|No|Nos|Mr|Mrs|Ms|Dr|Adv|Sh|Smt|Shri|Sr|Jr|Ltd|Pvt|vs|Dt|Sec|Art|Ref|Regd|Approx|Est)\.|\b[A-Z]\./gi
+const ABBREVIATION_RE =
+  /\b(?:Rs|No|Nos|Mr|Mrs|Ms|Dr|Adv|Sh|Smt|Shri|Sr|Jr|Ltd|Pvt|vs|Dt|Sec|Art|Ref|Regd|Approx|Est)\.|\b[A-Z]\./gi
 const MASK = ''
 const BOUNDARY_RE = /(?<=[.!?।;])\s+|\r?\n/g
 

@@ -21,7 +21,14 @@ const URGENCY: Record<UrgencyLevel, { label: string; cls: string; Icon: typeof C
   unknown: { label: 'No deadline found', cls: 'border-missing bg-missingSoft text-missing', Icon: CircleQuestionMark },
 }
 
-const FINDING_SECTIONS: readonly FindingSection[] = ['whatItIs', 'demands', 'senderClaims', 'consequences', 'options', 'doNow']
+const FINDING_SECTIONS: readonly FindingSection[] = [
+  'whatItIs',
+  'demands',
+  'senderClaims',
+  'consequences',
+  'options',
+  'doNow',
+]
 
 function collectRanges(result: AnalysisResult): HighlightRange[] {
   const ranges: HighlightRange[] = []
@@ -72,7 +79,12 @@ export function Results({ result, onStartOver }: Props) {
       <div className="no-print">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 ref={headingRef} tabIndex={-1} id="results-title" className="text-2xl font-bold text-brand outline-none">
+            <h2
+              ref={headingRef}
+              tabIndex={-1}
+              id="results-title"
+              className="text-2xl font-bold text-brand outline-none"
+            >
               {entry ? entry.title : 'Your notice'}
             </h2>
             <p className="text-sm text-muted">
@@ -94,21 +106,28 @@ export function Results({ result, onStartOver }: Props) {
         </div>
 
         {result.source === 'fallback' && (
-          <p role="note" className="mt-3 flex items-start gap-2 rounded-lg border border-approx/40 bg-approxSoft p-3 text-sm">
+          <p
+            role="note"
+            className="mt-3 flex items-start gap-2 rounded-lg border border-approx/40 bg-approxSoft p-3 text-sm"
+          >
             <Info aria-hidden="true" size={18} className="mt-0.5 shrink-0 text-approx" />
             <span>
-              <strong>Rule-based reading.</strong> {result.fallbackReason} This is simpler than the AI reading and may miss things, but
-              everything shown still comes from your notice&rsquo;s own words.
+              <strong>Rule-based reading.</strong> {result.fallbackReason} This is simpler than the AI reading and may
+              miss things, but everything shown still comes from your notice&rsquo;s own words.
             </span>
           </p>
         )}
 
         {result.noticeType === 'other' && (
-          <p role="note" className="mt-3 flex items-start gap-2 rounded-lg border border-missing/40 bg-missingSoft p-3 text-sm">
+          <p
+            role="note"
+            className="mt-3 flex items-start gap-2 rounded-lg border border-missing/40 bg-missingSoft p-3 text-sm"
+          >
             <CircleQuestionMark aria-hidden="true" size={18} className="mt-0.5 shrink-0 text-missing" />
             <span>
-              <strong>No curated guidance for this kind of notice.</strong> Cited only has vetted guidance for a few common notice types, and won&rsquo;t
-              improvise. You&rsquo;ll see what the notice says and what it leaves out, but no suggested options.
+              <strong>No curated guidance for this kind of notice.</strong> Cited only has vetted guidance for a few
+              common notice types, and won&rsquo;t improvise. You&rsquo;ll see what the notice says and what it leaves
+              out, but no suggested options.
             </span>
           </p>
         )}
@@ -122,20 +141,34 @@ export function Results({ result, onStartOver }: Props) {
             <span>· {s.removed} removed</span>
           </summary>
           <div className="mt-3 space-y-3 text-sm">
-            <p>Before anything is shown, Cited checks every quote against the exact text of your notice. Labels you&rsquo;ll see:</p>
+            <p>
+              Before anything is shown, Cited checks every quote against the exact text of your notice. Labels
+              you&rsquo;ll see:
+            </p>
             <ul className="space-y-1">
-              <li><ProvenanceBadge kind="verified" /> the quote was found word-for-word in your notice.</li>
-              <li><ProvenanceBadge kind="approximate" /> found with small differences (a scan or typing glitch). Read the quote yourself.</li>
-              <li><ProvenanceBadge kind="playbook" /> guidance from Cited&rsquo;s vetted notes, not from your notice.</li>
-              <li><ProvenanceBadge kind="notfound" /> something a notice normally says that yours doesn&rsquo;t.</li>
+              <li>
+                <ProvenanceBadge kind="verified" /> the quote was found word-for-word in your notice.
+              </li>
+              <li>
+                <ProvenanceBadge kind="approximate" /> found with small differences (a scan or typing glitch). Read the
+                quote yourself.
+              </li>
+              <li>
+                <ProvenanceBadge kind="playbook" /> guidance from Cited&rsquo;s vetted notes, not from your notice.
+              </li>
+              <li>
+                <ProvenanceBadge kind="notfound" /> something a notice normally says that yours doesn&rsquo;t.
+              </li>
             </ul>
             <p className="text-muted">
-              A found quote proves those words are in your notice; it doesn&rsquo;t prove the plain-language summary next to it is perfect.
-              That&rsquo;s why the quote always sits right beside it.
+              A found quote proves those words are in your notice; it doesn&rsquo;t prove the plain-language summary
+              next to it is perfect. That&rsquo;s why the quote always sits right beside it.
             </p>
             {result.removed.length > 0 && (
               <div>
-                <p className="font-semibold">Removed because they couldn&rsquo;t be verified ({result.removed.length}):</p>
+                <p className="font-semibold">
+                  Removed because they couldn&rsquo;t be verified ({result.removed.length}):
+                </p>
                 <ul className="mt-1 list-disc space-y-1 pl-5">
                   {result.removed.map((r, i) => (
                     <li key={i}>
@@ -154,7 +187,12 @@ export function Results({ result, onStartOver }: Props) {
               id="deadlines"
               title="Dates that matter"
               hint="Worked out by the app from the wording in your notice and the date you received it."
-              actions={<CalendarButton disabled={ics === null} onClick={() => ics && downloadText('notice-deadlines.ics', ics, 'text/calendar')} />}
+              actions={
+                <CalendarButton
+                  disabled={ics === null}
+                  onClick={() => ics && downloadText('notice-deadlines.ics', ics, 'text/calendar')}
+                />
+              }
             >
               {result.deadlines.length > 0 ? (
                 <DeadlineList result={result} activeId={activeId} onLocate={setActiveId} />
@@ -181,7 +219,11 @@ export function Results({ result, onStartOver }: Props) {
               </Panel>
             )}
             {f.options.length > 0 && (
-              <Panel id="options" title="Your options" hint="General information about choices people in this situation have. Not a recommendation.">
+              <Panel
+                id="options"
+                title="Your options"
+                hint="General information about choices people in this situation have. Not a recommendation."
+              >
                 <FindingList items={f.options} activeId={activeId} onLocate={setActiveId} />
               </Panel>
             )}
@@ -197,7 +239,11 @@ export function Results({ result, onStartOver }: Props) {
             )}
 
             {result.notStated.length > 0 && (
-              <Panel id="notstated" title="What the notice doesn't say" hint="Gaps worth knowing about. Cited will not guess them.">
+              <Panel
+                id="notstated"
+                title="What the notice doesn't say"
+                hint="Gaps worth knowing about. Cited will not guess them."
+              >
                 <ul className="space-y-3">
                   {result.notStated.map((n, i) => (
                     <li key={i} className="rounded-lg border border-line bg-white p-3">
@@ -219,7 +265,11 @@ export function Results({ result, onStartOver }: Props) {
                   <button type="button" className={buttonClass} onClick={copyBrief}>
                     <Copy aria-hidden="true" size={16} /> Copy
                   </button>
-                  <button type="button" className={buttonClass} onClick={() => downloadText('lawyer-brief.md', brief, 'text/markdown')}>
+                  <button
+                    type="button"
+                    className={buttonClass}
+                    onClick={() => downloadText('lawyer-brief.md', brief, 'text/markdown')}
+                  >
                     <Download aria-hidden="true" size={16} /> Download
                   </button>
                   <button type="button" className={buttonClass} onClick={() => window.print()}>
@@ -239,7 +289,12 @@ export function Results({ result, onStartOver }: Props) {
           </div>
 
           <aside className="lg:sticky lg:top-4 lg:self-start" aria-label="Source text">
-            <SourceViewer text={result.sourceText} ranges={ranges} activeId={activeId} language={result.documentLanguage} />
+            <SourceViewer
+              text={result.sourceText}
+              ranges={ranges}
+              activeId={activeId}
+              language={result.documentLanguage}
+            />
           </aside>
         </div>
       </div>

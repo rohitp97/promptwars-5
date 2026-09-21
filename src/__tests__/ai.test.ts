@@ -34,7 +34,11 @@ vi.mock('firebase/ai', () => ({
 
 import { DEFAULT_MODELS, createAiProvider, resetModelPreference } from '../lib/ai'
 
-const FIREBASE_ENV = { VITE_FIREBASE_API_KEY: 'fb-key', VITE_FIREBASE_PROJECT_ID: 'proj', VITE_FIREBASE_APP_ID: '1:2:web:3' }
+const FIREBASE_ENV = {
+  VITE_FIREBASE_API_KEY: 'fb-key',
+  VITE_FIREBASE_PROJECT_ID: 'proj',
+  VITE_FIREBASE_APP_ID: '1:2:web:3',
+}
 
 const request = { systemInstruction: 'SYS', prompt: 'PROMPT', json: true }
 
@@ -43,9 +47,16 @@ beforeEach(() => {
   vi.unstubAllEnvs()
   // Blank EVERY variable the provider reads, so the tests never depend on a developer's real .env.
   for (const k of [
-    'VITE_FIREBASE_API_KEY', 'VITE_FIREBASE_PROJECT_ID', 'VITE_FIREBASE_APP_ID',
-    'VITE_FIREBASE_AUTH_DOMAIN', 'VITE_FIREBASE_STORAGE_BUCKET', 'VITE_FIREBASE_MESSAGING_SENDER_ID',
-    'VITE_GEMINI_API_KEY', 'VITE_ALLOW_CLIENT_KEY', 'VITE_USE_FIREBASE_AI', 'VITE_GEMINI_MODEL',
+    'VITE_FIREBASE_API_KEY',
+    'VITE_FIREBASE_PROJECT_ID',
+    'VITE_FIREBASE_APP_ID',
+    'VITE_FIREBASE_AUTH_DOMAIN',
+    'VITE_FIREBASE_STORAGE_BUCKET',
+    'VITE_FIREBASE_MESSAGING_SENDER_ID',
+    'VITE_GEMINI_API_KEY',
+    'VITE_ALLOW_CLIENT_KEY',
+    'VITE_USE_FIREBASE_AI',
+    'VITE_GEMINI_MODEL',
   ]) {
     vi.stubEnv(k, '')
   }
@@ -124,14 +135,20 @@ describe('direct API-key provider', () => {
     const args = genai.generateContent.mock.calls[0][0]
     expect(args.model).toBe(DEFAULT_MODELS[0])
     expect(args.contents).toBe('PROMPT')
-    expect(args.config).toMatchObject({ systemInstruction: 'SYS', responseMimeType: 'application/json', temperature: 0.2 })
+    expect(args.config).toMatchObject({
+      systemInstruction: 'SYS',
+      responseMimeType: 'application/json',
+      temperature: 0.2,
+    })
   })
 
   it('attaches a file as inline data and does not force JSON for transcription', async () => {
     genai.generateContent.mockResolvedValue({ text: 'transcribed' })
     await createAiProvider()!.generate({ ...request, json: false, file: { mimeType: 'image/png', base64: 'AAAA' } })
     const args = genai.generateContent.mock.calls[0][0]
-    expect(args.contents).toEqual([{ role: 'user', parts: [{ text: 'PROMPT' }, { inlineData: { mimeType: 'image/png', data: 'AAAA' } }] }])
+    expect(args.contents).toEqual([
+      { role: 'user', parts: [{ text: 'PROMPT' }, { inlineData: { mimeType: 'image/png', data: 'AAAA' } }] },
+    ])
     expect(args.config.responseMimeType).toBeUndefined()
     expect(args.config.temperature).toBe(0)
   })
@@ -156,7 +173,12 @@ describe('Firebase AI Logic provider', () => {
     const out = await createAiProvider()!.generate(request)
     expect(out).toBe('{"ok":true}')
     expect(fbase.initializeApp).toHaveBeenCalledWith(
-      expect.objectContaining({ apiKey: 'fb-key', projectId: 'proj', appId: '1:2:web:3', authDomain: 'proj.firebaseapp.com' }),
+      expect.objectContaining({
+        apiKey: 'fb-key',
+        projectId: 'proj',
+        appId: '1:2:web:3',
+        authDomain: 'proj.firebaseapp.com',
+      }),
     )
     expect(fbase.getAI).toHaveBeenCalledTimes(1)
     expect(fbase.getAI.mock.calls[0][1].backend.constructor.name).toBe('GoogleAIBackend')
@@ -174,19 +196,36 @@ describe('Firebase AI Logic provider', () => {
     await createAiProvider()!.generate(request)
     expect(fbase.getGenerativeModel).toHaveBeenCalledWith(
       { name: 'ai' },
-      { model: DEFAULT_MODELS[0], systemInstruction: 'SYS', generationConfig: { responseMimeType: 'application/json', temperature: 0.2 } },
+      {
+        model: DEFAULT_MODELS[0],
+        systemInstruction: 'SYS',
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
+      },
     )
     expect(fbase.generateContent).toHaveBeenCalledWith(['PROMPT'])
   })
 
   it('sends attachments as inlineData parts, in text mode', async () => {
-    await createAiProvider()!.generate({ ...request, json: false, file: { mimeType: 'application/pdf', base64: 'JVBER' } })
+    await createAiProvider()!.generate({
+      ...request,
+      json: false,
+      file: { mimeType: 'application/pdf', base64: 'JVBER' },
+    })
     expect(fbase.getGenerativeModel.mock.calls[0][1].generationConfig).toEqual({ temperature: 0 })
-    expect(fbase.generateContent).toHaveBeenCalledWith(['PROMPT', { inlineData: { mimeType: 'application/pdf', data: 'JVBER' } }])
+    expect(fbase.generateContent).toHaveBeenCalledWith([
+      'PROMPT',
+      { inlineData: { mimeType: 'application/pdf', data: 'JVBER' } },
+    ])
   })
 
   it('propagates blocked/failed responses instead of swallowing them', async () => {
-    fbase.generateContent.mockResolvedValue({ response: { text: () => { throw new Error('Response was blocked') } } })
+    fbase.generateContent.mockResolvedValue({
+      response: {
+        text: () => {
+          throw new Error('Response was blocked')
+        },
+      },
+    })
     await expect(createAiProvider()!.generate(request)).rejects.toThrow(/blocked/)
   })
 })

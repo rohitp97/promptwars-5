@@ -65,12 +65,15 @@ export function Intake({ draft, setDraft, today, samples, aiName, error, onDismi
         Got a legal notice? Let&rsquo;s make sense of it.
       </h2>
       <p className="mt-2 text-base text-muted">
-        In about a minute you&rsquo;ll see what it is, how urgent it is, and what to do today. Every point comes with the exact
-        words from your notice it was based on.
+        In about a minute you&rsquo;ll see what it is, how urgent it is, and what to do today. Every point comes with
+        the exact words from your notice it was based on.
       </p>
 
       {error && (
-        <div role="alert" className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-danger/40 bg-dangerSoft p-3 text-sm text-danger">
+        <div
+          role="alert"
+          className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-danger/40 bg-dangerSoft p-3 text-sm text-danger"
+        >
           <p>{error}</p>
           <button type="button" onClick={onDismissError} className="font-semibold underline">
             Dismiss
@@ -80,10 +83,28 @@ export function Intake({ draft, setDraft, today, samples, aiName, error, onDismi
 
       <div className="mt-6">
         <div role="tablist" aria-label="How to add your notice" className="flex gap-1" onKeyDown={onTabKey}>
-          <button type="button" role="tab" id="tab-paste" aria-selected={tab === 'paste'} aria-controls="panel-paste" tabIndex={tab === 'paste' ? 0 : -1} className={tabClass(tab === 'paste')} onClick={() => setTab('paste')}>
+          <button
+            type="button"
+            role="tab"
+            id="tab-paste"
+            aria-selected={tab === 'paste'}
+            aria-controls="panel-paste"
+            tabIndex={tab === 'paste' ? 0 : -1}
+            className={tabClass(tab === 'paste')}
+            onClick={() => setTab('paste')}
+          >
             <FileText aria-hidden="true" size={18} /> Paste text
           </button>
-          <button type="button" role="tab" id="tab-upload" aria-selected={tab === 'upload'} aria-controls="panel-upload" tabIndex={tab === 'upload' ? 0 : -1} className={tabClass(tab === 'upload')} onClick={() => setTab('upload')}>
+          <button
+            type="button"
+            role="tab"
+            id="tab-upload"
+            aria-selected={tab === 'upload'}
+            aria-controls="panel-upload"
+            tabIndex={tab === 'upload' ? 0 : -1}
+            className={tabClass(tab === 'upload')}
+            onClick={() => setTab('upload')}
+          >
             <Camera aria-hidden="true" size={18} /> Photo or PDF
           </button>
         </div>
@@ -125,9 +146,13 @@ export function Intake({ draft, setDraft, today, samples, aiName, error, onDismi
               <Upload aria-hidden="true" size={32} className="text-brand" />
               <p className="text-base font-semibold">Drop a photo or PDF of your notice here</p>
               <p className="text-sm text-muted">
-                PNG, JPG, WebP, PDF or .txt · up to {MAX_FILE_BYTES / 1024 / 1024} MB. On a phone, choose Camera to take a photo.
+                PNG, JPG, WebP, PDF or .txt · up to {MAX_FILE_BYTES / 1024 / 1024} MB. On a phone, choose Camera to take
+                a photo.
               </p>
-              <label htmlFor={fileId} className={`${buttonClass} cursor-pointer focus-within:outline focus-within:outline-[3px] focus-within:outline-brand`}>
+              <label
+                htmlFor={fileId}
+                className={`${buttonClass} cursor-pointer focus-within:outline focus-within:outline-[3px] focus-within:outline-brand`}
+              >
                 Choose a file
                 <input
                   id={fileId}
@@ -140,7 +165,9 @@ export function Intake({ draft, setDraft, today, samples, aiName, error, onDismi
                   }}
                 />
               </label>
-              <p className="text-xs text-muted">You&rsquo;ll be able to check and correct the text we read before anything is analysed.</p>
+              <p className="text-xs text-muted">
+                You&rsquo;ll be able to check and correct the text we read before anything is analysed.
+              </p>
             </div>
           </div>
         </div>
@@ -195,11 +222,17 @@ export function Intake({ draft, setDraft, today, samples, aiName, error, onDismi
 
       <div className="mt-8 rounded-xl border border-line bg-white p-4">
         <h3 className="text-sm font-semibold">No notice handy? Try a sample</h3>
-        <p className="mt-0.5 text-xs text-muted">Fictional notices, dated relative to today. They&rsquo;re analysed live, exactly like your own.</p>
+        <p className="mt-0.5 text-xs text-muted">
+          Fictional notices, dated relative to today. They&rsquo;re analysed live, exactly like your own.
+        </p>
         <ul className="mt-3 flex flex-wrap gap-2">
           {samples.map((s) => (
             <li key={s.id}>
-              <button type="button" onClick={() => loadSample(s)} className={`${buttonClass} flex-col items-start !gap-0 text-left`}>
+              <button
+                type="button"
+                onClick={() => loadSample(s)}
+                className={`${buttonClass} flex-col items-start !gap-0 text-left`}
+              >
                 <span lang={s.lang}>{s.label}</span>
                 <span className="text-xs font-normal text-muted">{s.blurb}</span>
               </button>
