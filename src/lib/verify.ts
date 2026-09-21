@@ -6,6 +6,7 @@ import type {
   QuoteMatch,
   RawFinding,
   RemovedFinding,
+  StatementSection,
   VerifiedFinding,
 } from '../types'
 import { normalizeOnly, normalizeWithMap } from './normalize'
@@ -133,12 +134,12 @@ export type FindingCheck = { ok: true; provenance: Provenance } | { ok: false; r
 /**
  * A finding is trusted only if:
  *  - it carries a quote that is found in the notice, or
- *  - (options / doNow only) it points at a real playbook item and carries no failed quote.
+ *  - (options / doNow / answers only) it points at a real playbook item and carries no failed quote.
  * A quote that fails verification rejects the finding outright — a valid playbook ref can't rescue
  * a claim about the notice that the notice doesn't support.
  */
 export function verifyFinding(
-  section: FindingSection,
+  section: StatementSection,
   finding: RawFinding,
   src: PreparedSource,
   refs: RefIndex,
@@ -160,7 +161,7 @@ export function verifyFinding(
     }
   }
 
-  if (DOCUMENT_ONLY_SECTIONS.includes(section)) {
+  if (section !== 'answer' && DOCUMENT_ONLY_SECTIONS.includes(section)) {
     return { ok: false, reason: 'Describes the notice but gave no quote from it' }
   }
   if (finding.playbookRef === null) {

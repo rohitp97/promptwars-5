@@ -72,7 +72,7 @@ export default function App() {
           />
         )}
 
-        {c.phase.kind === 'result' && <Results result={c.phase.result} onStartOver={c.reset} />}
+        {c.phase.kind === 'result' && <Results result={c.phase.result} onStartOver={c.reset} qa={c.qa} />}
       </main>
       <footer className="no-print mx-auto max-w-6xl px-4 pb-8 text-xs text-muted">
         Cited gives general information, tied to your notice&rsquo;s own words. Curated guidance covers a few common

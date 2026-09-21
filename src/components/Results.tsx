@@ -5,7 +5,9 @@ import { buildBriefMarkdown } from '../lib/brief'
 import { formatLong } from '../lib/dates'
 import { buildIcs } from '../lib/ics'
 import type { HighlightRange } from '../lib/segments'
-import type { AnalysisResult, FindingSection, UrgencyLevel } from '../types'
+import type { AnalysisResult, FindingSection, Provenance, UrgencyLevel, VerifiedAnswer } from '../types'
+import { AskPanel } from './AskPanel'
+import type { QaController } from './AskPanel'
 import { CalendarButton, Checklist, DeadlineList, FindingList } from './Findings'
 import { MarkdownLite } from './MarkdownLite'
 import { SourceViewer } from './SourceViewer'
@@ -30,15 +32,18 @@ const FINDING_SECTIONS: readonly FindingSection[] = [
   'doNow',
 ]
 
-function collectRanges(result: AnalysisResult): HighlightRange[] {
+/** Every cited passage that can be highlighted in the notice: analysis findings, deadlines and answers. */
+function collectRanges(result: AnalysisResult, answers: readonly VerifiedAnswer[]): HighlightRange[] {
   const ranges: HighlightRange[] = []
-  for (const section of FINDING_SECTIONS) {
-    for (const f of result.findings[section]) {
-      if (f.provenance.kind === 'document') ranges.push({ id: f.id, start: f.provenance.start, end: f.provenance.end })
-    }
+  const add = (id: string, provenance: Provenance) => {
+    if (provenance.kind === 'document') ranges.push({ id, start: provenance.start, end: provenance.end })
   }
-  for (const d of result.deadlines) {
-    if (d.provenance.kind === 'document') ranges.push({ id: d.id, start: d.provenance.start, end: d.provenance.end })
+  for (const section of FINDING_SECTIONS) {
+    for (const f of result.findings[section]) add(f.id, f.provenance)
+  }
+  for (const d of result.deadlines) add(d.id, d.provenance)
+  for (const a of answers) {
+    for (const s of a.statements) add(s.id, s.provenance)
   }
   return ranges
 }
@@ -46,9 +51,10 @@ function collectRanges(result: AnalysisResult): HighlightRange[] {
 interface Props {
   result: AnalysisResult
   onStartOver: () => void
+  qa: QaController
 }
 
-export function Results({ result, onStartOver }: Props) {
+export function Results({ result, onStartOver, qa }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [copied, setCopied] = useState<'idle' | 'ok' | 'failed'>('idle')
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -57,7 +63,7 @@ export function Results({ result, onStartOver }: Props) {
     headingRef.current?.focus()
   }, [])
 
-  const ranges = useMemo(() => collectRanges(result), [result])
+  const ranges = useMemo(() => collectRanges(result, qa.answers), [result, qa.answers])
   const brief = useMemo(() => buildBriefMarkdown(result), [result])
   const ics = useMemo(() => buildIcs(result), [result])
   const entry = getPlaybookEntry(result.noticeType)
@@ -255,6 +261,17 @@ export function Results({ result, onStartOver }: Props) {
                 </ul>
               </Panel>
             )}
+
+            <AskPanel
+              noticeType={result.noticeType}
+              answers={qa.answers}
+              asking={qa.asking}
+              error={qa.error}
+              onAsk={qa.ask}
+              onDismissError={qa.dismissError}
+              activeId={activeId}
+              onLocate={setActiveId}
+            />
 
             <Panel
               id="brief"

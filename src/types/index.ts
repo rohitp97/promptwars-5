@@ -76,16 +76,19 @@ export type Provenance =
   | { kind: 'document'; status: 'verified' | 'approximate'; quote: string; start: number; end: number }
   | { kind: 'playbook'; ref: string; refLabel: string }
 
+/** 'answer' is a statement in a reply to a question the person asked, rather than part of the analysis. */
+export type StatementSection = FindingSection | 'answer'
+
 export interface VerifiedFinding {
   id: string
-  section: FindingSection
+  section: StatementSection
   text: string
   why: string | null
   provenance: Provenance
 }
 
 export interface RemovedFinding {
-  section: FindingSection | 'deadlines' | 'malformed'
+  section: StatementSection | 'deadlines' | 'malformed'
   text: string
   reason: string
 }
@@ -122,6 +125,41 @@ export interface Urgency {
 // ── Assembled result ──────────────────────────────────────────────────────────
 
 export type AnalysisSource = 'gemini' | 'fallback'
+
+// ── Questions about a notice ──────────────────────────────────────────────────
+
+/** What the model returns for one question. Every statement still needs a quote or a playbook reference. */
+export interface RawAnswer {
+  answer: RawFinding[]
+  /** One plain sentence on what the notice does not say about the question, if anything. */
+  notInNotice: string | null
+  /** Something specific worth asking a lawyer about this question. */
+  lawyerQuestion: string | null
+  /** True when the question is not about this notice at all. */
+  offTopic: boolean
+}
+
+/**
+ * Worked out by code from what survived verification, never asked of the model:
+ * - answered: at least one verified statement and nothing flagged as missing
+ * - partly: verified statements AND something the notice does not say
+ * - not_in_notice: nothing the notice or the playbook can back up
+ * - off_topic: the question isn't about this notice
+ * - unverified: the AI gave statements but none could be verified, so none are shown
+ */
+export type AnswerStatus = 'answered' | 'partly' | 'not_in_notice' | 'off_topic' | 'unverified'
+
+export interface VerifiedAnswer {
+  id: string
+  question: string
+  status: AnswerStatus
+  statements: VerifiedFinding[]
+  notInNotice: string | null
+  lawyerQuestion: string | null
+  removed: RemovedFinding[]
+  source: AnalysisSource
+  fallbackReason: string | null
+}
 
 export interface AnalysisResult {
   source: AnalysisSource

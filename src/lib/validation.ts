@@ -11,12 +11,14 @@ export const LIMITS = {
   lawyerQuestions: 8,
   notStated: 8,
   deadlines: 10,
+  answerStatements: 5,
+  notInNotice: 400,
 } as const
 
 const FINDING_KEYS = ['whatItIs', 'demands', 'senderClaims', 'consequences', 'options', 'doNow'] as const
 
 type Rec = Record<string, unknown>
-const isRecord = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v)
+export const isRecord = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v)
 
 /** Non-empty trimmed string within `max`, else null. */
 function text(v: unknown, max: number): string | null {
@@ -26,7 +28,7 @@ function text(v: unknown, max: number): string | null {
 }
 
 /** Optional string: absent/null → null (ok); wrong type or over-long → undefined (malformed). */
-function optionalText(v: unknown, max: number): string | null | undefined {
+export function optionalText(v: unknown, max: number): string | null | undefined {
   if (v === undefined || v === null) return null
   if (typeof v !== 'string') return undefined
   const t = v.trim()
@@ -34,7 +36,7 @@ function optionalText(v: unknown, max: number): string | null | undefined {
   return t.length <= max ? t : undefined
 }
 
-function parseFinding(v: unknown): RawFinding | null {
+export function parseFinding(v: unknown): RawFinding | null {
   if (!isRecord(v)) return null
   const t = text(v.text, LIMITS.text)
   const why = optionalText(v.why, LIMITS.why)

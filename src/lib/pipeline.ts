@@ -23,7 +23,7 @@ export interface PipelineDeps {
   now?: () => Date
 }
 
-type FailureKind = 'timeout' | 'format' | 'quota' | 'config' | 'busy' | 'unavailable'
+export type FailureKind = 'timeout' | 'format' | 'quota' | 'config' | 'busy' | 'unavailable'
 
 /**
  * Only a malformed answer is worth a second attempt. Outages, overload, quota and setup problems
@@ -65,7 +65,7 @@ export function classify(err: unknown): FailureKind {
   return 'unavailable'
 }
 
-const FAILURE_TEXT: Record<FailureKind, string> = {
+export const FAILURE_TEXT: Record<FailureKind, string> = {
   timeout: 'The AI service took too long to answer.',
   format: 'The AI answered in a format the app could not use.',
   quota: 'The AI service has reached its usage limit for now.',
@@ -99,6 +99,42 @@ function fallbackResult(text: string, options: IntakeOptions, now: Date, reason:
   })
 }
 
+export type JsonOutcome<T> = { ok: true; value: T } | { ok: false; failure: FailureKind }
+
+/**
+ * Asks the model for JSON and turns it into a `T` with `parse` (which returns null for an unusable
+ * shape). A malformed answer is retried once; every other failure is reported, not retried. Shared by
+ * the notice analysis and by questions about a notice.
+ */
+export async function requestJson<T>(
+  provider: AiProvider,
+  request: { systemInstruction: string; prompt: string },
+  parse: (raw: unknown) => T | null,
+): Promise<JsonOutcome<T>> {
+  let failure: FailureKind = 'unavailable'
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const raw = await withTimeout(
+        provider.generate({ ...request, json: true }),
+        ANALYSIS_TIMEOUT_MS,
+        'The AI request timed out',
+      )
+      const value = parse(parseJsonLoose(raw))
+      if (value === null) throw new Error('The AI response did not match the expected shape')
+      return { ok: true, value }
+    } catch (err) {
+      failure = classify(err)
+      // For whoever operates the site: the person sees a friendly note, the console keeps the cause.
+      console.warn(
+        `[cited] AI request failed (${failure}, attempt ${attempt}):`,
+        err instanceof Error ? err.message : err,
+      )
+      if (!RETRYABLE.includes(failure)) break
+    }
+  }
+  return { ok: false, failure }
+}
+
 /**
  * The whole analysis: ask the model (with one retry), parse strictly, verify every claim, resolve
  * dates in code. Anything that goes wrong lands on the rule-based reading, clearly labelled.
@@ -123,46 +159,34 @@ export async function analyseNotice(
     hint,
   })
 
-  let failure: FailureKind = 'unavailable'
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    try {
-      const raw = await withTimeout(
-        deps.provider.generate({ systemInstruction, prompt, json: true }),
-        ANALYSIS_TIMEOUT_MS,
-        'The AI request timed out',
-      )
-      const parsed = parseAnalysis(parseJsonLoose(raw))
-      if (!parsed) throw new Error('The AI response did not match the expected shape')
-
-      const result = assembleResult({
-        response: parsed.response,
-        malformed: parsed.malformed,
-        sourceText: text,
-        receivedOn: options.receivedOn,
-        today: todayIso(now),
-        source: 'gemini',
-        fallbackReason: null,
-      })
-      if (isUnusable(result)) {
-        return fallbackResult(
-          text,
-          options,
-          now,
-          'None of the AI’s statements could be verified against your notice, so nothing from it is shown.',
-        )
-      }
-      return result
-    } catch (err) {
-      failure = classify(err)
-      // For whoever operates the site: the person sees a friendly note, the console keeps the cause.
-      console.warn(
-        `[cited] AI request failed (${failure}, attempt ${attempt}):`,
-        err instanceof Error ? err.message : err,
-      )
-      if (!RETRYABLE.includes(failure)) break
-    }
+  const outcome = await requestJson(deps.provider, { systemInstruction, prompt }, parseAnalysis)
+  if (!outcome.ok) {
+    return fallbackResult(
+      text,
+      options,
+      now,
+      `${FAILURE_TEXT[outcome.failure]} Showing a simpler rule-based reading instead.`,
+    )
   }
-  return fallbackResult(text, options, now, `${FAILURE_TEXT[failure]} Showing a simpler rule-based reading instead.`)
+
+  const result = assembleResult({
+    response: outcome.value.response,
+    malformed: outcome.value.malformed,
+    sourceText: text,
+    receivedOn: options.receivedOn,
+    today: todayIso(now),
+    source: 'gemini',
+    fallbackReason: null,
+  })
+  if (isUnusable(result)) {
+    return fallbackResult(
+      text,
+      options,
+      now,
+      'None of the AI’s statements could be verified against your notice, so nothing from it is shown.',
+    )
+  }
+  return result
 }
 
 /** Photo / PDF → text the person can check before analysis. Throws a UserError on failure. */

@@ -3,7 +3,8 @@ import { createAiProvider } from '../lib/ai'
 import { todayIso } from '../lib/dates'
 import { checkFile, readAsBase64, readAsText } from '../lib/file'
 import { UserError, analyseNotice, transcribeFile } from '../lib/pipeline'
-import type { AiProviderName, AnalysisResult, ExplainLanguage, IntakeOptions } from '../types'
+import { MAX_ANSWERS, askQuestion } from '../lib/qa'
+import type { AiProviderName, AnalysisResult, ExplainLanguage, IntakeOptions, VerifiedAnswer } from '../types'
 
 export interface Draft {
   text: string
@@ -35,9 +36,22 @@ export function useCase() {
   const [phase, setPhase] = useState<Phase>({ kind: 'intake' })
   const [error, setError] = useState<string | null>(null)
 
+  // Questions asked about the current result, newest first. Cleared with the case.
+  const [answers, setAnswers] = useState<VerifiedAnswer[]>([])
+  const [asking, setAsking] = useState(false)
+  const [askError, setAskError] = useState<string | null>(null)
+
   // Bumped on every new request and on reset, so a slow response can't resurrect a cleared case.
   const runId = useRef(0)
+  const askId = useRef(0)
   const previewUrl = useRef<string | null>(null)
+
+  const clearQuestions = useCallback(() => {
+    askId.current++
+    setAnswers([])
+    setAsking(false)
+    setAskError(null)
+  }, [])
 
   const revokePreview = useCallback(() => {
     if (previewUrl.current) URL.revokeObjectURL(previewUrl.current)
@@ -51,6 +65,7 @@ export function useCase() {
     async (text: string, d: Draft) => {
       const id = ++runId.current
       setError(null)
+      clearQuestions()
       setPhase({ kind: 'analysing' })
       try {
         const result = await analyseNotice(text, options(d), { provider })
@@ -61,7 +76,25 @@ export function useCase() {
         setPhase({ kind: 'intake' })
       }
     },
-    [provider],
+    [provider, clearQuestions],
+  )
+
+  const ask = useCallback(
+    async (question: string) => {
+      if (phase.kind !== 'result') return
+      const id = ++askId.current
+      setAsking(true)
+      setAskError(null)
+      try {
+        const answer = await askQuestion(question, phase.result, { provider })
+        if (id === askId.current) setAnswers((prev) => [answer, ...prev].slice(0, MAX_ANSWERS))
+      } catch (err) {
+        if (id === askId.current) setAskError(messageOf(err))
+      } finally {
+        if (id === askId.current) setAsking(false)
+      }
+    },
+    [phase, provider],
   )
 
   const analyse = useCallback(() => runAnalysis(draft.text, draft), [runAnalysis, draft])
@@ -109,17 +142,19 @@ export function useCase() {
   const backToIntake = useCallback(() => {
     runId.current++
     revokePreview()
+    clearQuestions()
     setError(null)
     setPhase({ kind: 'intake' })
-  }, [revokePreview])
+  }, [revokePreview, clearQuestions])
 
   const reset = useCallback(() => {
     runId.current++
     revokePreview()
+    clearQuestions()
     setDraft({ text: '', receivedOn: today, language: 'auto' })
     setError(null)
     setPhase({ kind: 'intake' })
-  }, [revokePreview, today])
+  }, [revokePreview, clearQuestions, today])
 
   return {
     today,
@@ -133,6 +168,7 @@ export function useCase() {
     confirmTranscript,
     backToIntake,
     reset,
+    qa: { answers, asking, error: askError, ask, dismissError: () => setAskError(null) },
     aiName: (provider?.name ?? null) as AiProviderName | null,
   }
 }

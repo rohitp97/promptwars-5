@@ -31,6 +31,30 @@ async function violations(root: Element = document.body): Promise<string[]> {
 
 const TRANSCRIPT = buildSamples(todayIso())[0].text
 
+/** A minimal but valid analysis reply, for tests that need the AI path to reach the results screen. */
+const TRANSCRIPT_ANALYSIS = JSON.stringify({
+  noticeType: 'cheque_bounce',
+  documentLanguage: 'English',
+  noticeDate: null,
+  noticeDateQuote: null,
+  whatItIs: [
+    {
+      text: 'A cheque-bounce demand notice.',
+      why: null,
+      quote: 'LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881',
+      playbookRef: null,
+    },
+  ],
+  demands: [],
+  senderClaims: [],
+  consequences: [],
+  options: [],
+  doNow: [],
+  deadlines: [],
+  notStated: [],
+  lawyerQuestions: [],
+})
+
 beforeEach(() => {
   createAiProvider.mockReturnValue(null)
   URL.createObjectURL = vi.fn(() => 'blob:preview') as unknown as typeof URL.createObjectURL
@@ -99,6 +123,63 @@ describe('accessibility (axe-core, WCAG 2 A/AA rules)', () => {
     await screen.findByRole('heading', { name: 'Dates that matter' })
     await user.click(screen.getByText(/statements checked:/))
     await user.click(screen.getAllByRole('button', { name: 'Show in notice' })[0])
+    expect(await violations()).toEqual([])
+  })
+
+  it('question panel with answers: verified passages, "not in your notice", and an off-topic decline', async () => {
+    const answers: Record<string, string> = {
+      'How much do I pay?': JSON.stringify({
+        answer: [
+          {
+            text: 'You are asked to pay.',
+            why: 'It is the amount.',
+            quote: 'pay the said sum of Rs. 1,50,000/-',
+            playbookRef: null,
+          },
+        ],
+        notInNotice: 'The notice does not say which bank returned the cheque.',
+        lawyerQuestion: 'Was the notice sent in time?',
+        offTopic: false,
+      }),
+      'What about my deposit?': JSON.stringify({
+        answer: [],
+        notInNotice: null,
+        lawyerQuestion: null,
+        offTopic: false,
+      }),
+      'Write me a poem': JSON.stringify({ answer: [], notInNotice: null, lawyerQuestion: null, offTopic: true }),
+    }
+    createAiProvider.mockReturnValue({
+      name: 'gemini-api-key',
+      generate: async (req) => {
+        const q = /<question>\n([\s\S]*?)\n<\/question>/.exec(req.prompt)?.[1]
+        if (q === undefined) return TRANSCRIPT_ANALYSIS
+        return answers[q]
+      },
+    })
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: /Cheque bounce notice/ }))
+    await user.click(screen.getByRole('button', { name: 'Decode this notice' }))
+    await screen.findByRole('heading', { name: 'Ask about this notice' })
+
+    for (const question of Object.keys(answers)) {
+      await user.type(screen.getByLabelText('Your question'), question)
+      await user.click(screen.getByRole('button', { name: 'Ask' }))
+      await screen.findByRole('heading', { name: question, level: 4 })
+    }
+    await user.click(screen.getAllByRole('button', { name: 'Show in notice' }).at(-1)!)
+    expect(await violations()).toEqual([])
+  })
+
+  it('question panel while an answer is pending, and after a keyword-search fallback', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: /Cheque bounce notice/ }))
+    await user.click(screen.getByRole('button', { name: 'Decode this notice' }))
+    await screen.findByRole('heading', { name: 'Ask about this notice' })
+    await user.click(screen.getByRole('button', { name: 'How much am I being asked to pay?' }))
+    await screen.findByRole('heading', { name: 'How much am I being asked to pay?', level: 4 })
     expect(await violations()).toEqual([])
   })
 

@@ -43,12 +43,19 @@ export interface PlaybookEntry {
   pitfalls: PlaybookItem[]
   documents: PlaybookItem[]
   lawyerQuestions: string[]
+  /** Questions people commonly have about this kind of notice; shown as one-click starters. */
+  starterQuestions: string[]
 }
 
 export const PLAYBOOK: readonly PlaybookEntry[] = [
   {
     id: 'cheque_bounce',
     title: 'Cheque bounce (Section 138)',
+    starterQuestions: [
+      'How much am I being asked to pay?',
+      "What happens if I don't pay in time?",
+      'Does the notice say which cheque this is about?',
+    ],
     summary:
       'A demand notice after a cheque was returned unpaid. The law gives the drawer 15 days from receiving the notice to pay before a criminal complaint becomes possible.',
     authority: ['Negotiable Instruments Act, 1881, ss.138–143A'],
@@ -138,6 +145,11 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
   {
     id: 'eviction_rent',
     title: 'Rent / eviction notice',
+    starterQuestions: [
+      'By when do I have to leave?',
+      'Why does the landlord say I must leave?',
+      'Does the notice mention my security deposit?',
+    ],
     summary:
       'A landlord asking a tenant to vacate or pay arrears. Rules depend heavily on the state Rent Control Act and on the written agreement.',
     authority: ['Transfer of Property Act, 1882, s.106', 'State Rent Control Acts (vary by state)'],
@@ -225,6 +237,11 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
   {
     id: 'loan_recovery',
     title: 'Bank loan recovery (SARFAESI)',
+    starterQuestions: [
+      'How much does the bank say I owe?',
+      "What can the bank do if I don't pay?",
+      'Does the notice say I can object?',
+    ],
     summary:
       'A bank demanding repayment of a secured loan. Under SARFAESI s.13(2) the borrower normally gets 60 days before the bank can act on the security.',
     authority: ['SARFAESI Act, 2002, ss.13, 17', 'Recovery of Debts and Bankruptcy Act, 1993'],
@@ -309,6 +326,11 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
   {
     id: 'employment_dispute',
     title: 'Employment / termination notice',
+    starterQuestions: [
+      'What is the employer accusing me of?',
+      'What does the notice say I must do?',
+      'Does the notice mention my dues or notice period?',
+    ],
     summary:
       'A notice from an employer about termination, notice period, bond recovery or breach. Your written contract drives most of the answers.',
     authority: [
@@ -385,6 +407,11 @@ export const PLAYBOOK: readonly PlaybookEntry[] = [
   {
     id: 'consumer_demand',
     title: 'Consumer / refund demand',
+    starterQuestions: [
+      'What refund or compensation is demanded?',
+      'By when must I respond?',
+      "What does the notice say happens if I don't?",
+    ],
     summary:
       'A demand notice about a refund, defective product or deficient service. Complaints go to the Consumer Commission within a limitation period.',
     authority: ['Consumer Protection Act, 2019'],
@@ -477,6 +504,17 @@ export const GENERAL_GUIDANCE: readonly PlaybookItem[] = [
 ]
 
 export const NOTICE_TYPE_IDS: readonly NoticeTypeId[] = PLAYBOOK.map((e) => e.id)
+
+/** Starters for a notice outside the curated types. */
+export const GENERIC_STARTER_QUESTIONS: readonly string[] = [
+  'What is this notice asking me to do?',
+  'What happens if I ignore it?',
+  'By when do I have to respond?',
+]
+
+export function getStarterQuestions(type: NoticeType): readonly string[] {
+  return getPlaybookEntry(type)?.starterQuestions ?? GENERIC_STARTER_QUESTIONS
+}
 
 export function getPlaybookEntry(type: NoticeType): PlaybookEntry | null {
   return PLAYBOOK.find((e) => e.id === type) ?? null

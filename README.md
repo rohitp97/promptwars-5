@@ -27,7 +27,8 @@ and shows the exact words in the notice behind every point, checked by code.
    dates resolved in code → urgency derived in code.
 3. **Output**: urgency banner · dates that matter (+ `.ics`) · what it is · what they want ·
    do-now checklist · options · what they say happens · what they claim · what the notice doesn't
-   say · lawyer brief (copy / download / print) · the notice itself with cited passages highlighted.
+   say · **ask your own question** · lawyer brief (copy / download / print) · the notice itself with
+   cited passages highlighted.
 4. **Works without AI**: if Gemini is unavailable, slow, or returns something unusable, a
    rule-based reader takes over, clearly labelled. Its claims go through the *same* verifier.
 
@@ -37,15 +38,16 @@ and shows the exact words in the notice behind every point, checked by code.
 |---|---|---|
 | Simplify complex legal documents | Plain-language "what this is / what they want / what they say happens", in English or Hindi | `lib/prompts.ts`, `components/Findings.tsx` |
 | Highlight clauses, obligations, risks | Demands, deadlines, consequences and sender claims, each with its exact quote highlighted in the notice | `lib/verify.ts`, `components/SourceViewer.tsx` |
+| Answer questions based on the document | "Ask about this notice": free-text questions (English or Hindi) answered only from the notice. Every statement is a verified quote or labelled general guidance, and "not in your notice" is a valid answer | `lib/qa.ts`, `components/AskPanel.tsx` |
 | Understand options and next steps | Options and a do-now checklist from a curated, dated playbook; statutory windows computed from the receipt date | `data/playbook.ts`, `lib/deadlines.ts` |
 | Summaries, checklists, actionable outputs | Urgency banner, `.ics` calendar of deadlines, tick-off checklist, printable brief | `lib/ics.ts`, `lib/brief.ts` |
 | Prepare information and questions for a lawyer | One-page brief: facts, dates, quotes, documents to bring, questions to ask | `lib/brief.ts` |
 | **Trust: cite sources, admit missing information** (the organisers' emphasis) | Every claim is a verified quote, general guidance, or an explicit "not in your notice"; unverifiable claims are removed and listed | `lib/verify.ts`, `lib/analysis.ts` |
 | Assist, don't replace, professional advice | Never recommends an outcome; standing disclaimer; points to free legal aid (NALSA 15100) | `components/Chrome.tsx`, `data/playbook.ts` |
 
-**Deliberately not built:** free-form chat / Q&A over the document, and comparing two contracts.
-Cited answers the questions a person with a notice actually has, up front and each with its source,
-rather than offering a chat box. It analyses a single notice.
+**Deliberately not built:** comparing two contracts, and open-ended chat. Cited analyses a single
+notice up front, then answers one question at a time, each grounded in that notice (no memory
+between questions, no general legal chat).
 
 ## Setup
 
@@ -90,7 +92,7 @@ console with a CSP error, add the host it names to `connect-src` there and in `i
 |---|---|
 | `npm run dev` | Vite dev server |
 | `npm run build` | typecheck + production build |
-| `npm test` | 360+ tests: logic, UI flows, axe accessibility, WCAG contrast (Vitest + Testing Library) |
+| `npm test` | 440+ tests: logic, UI flows, axe accessibility, WCAG contrast (Vitest + Testing Library) |
 | `npm run test:coverage` | coverage report for `src/lib` and `src/hooks` |
 | `npm run lint` | oxlint |
 | `npm run format` / `format:check` | Prettier (write / verify) over `src` |
@@ -120,7 +122,10 @@ to Google's Gemini model to be read; in rule-based mode nothing leaves the brows
   labelled general information, dated, and gives statute references to check. Laws and state rules
   change.
 - Notice text is sent to Gemini. Don't use it on notices you aren't comfortable sharing with
-  Google's API terms.
+  Google's API terms. Questions you ask are sent along with it.
+- **Questions are single-turn**: each is answered on its own, so a follow-up like "what about
+  that?" won't work. Answers are not added to the lawyer brief. Without the AI, a question falls
+  back to a crude keyword search over the notice, clearly labelled.
 - With App Check unenforced (required today, see Setup), anyone with the public Firebase web config
   could call the AI endpoint on your project's quota. Adding App Check tokens to the app and then
   enforcing is the known next step.
@@ -157,5 +162,5 @@ src/
 ├── data/       playbook · samples
 ├── hooks/      useCase
 ├── components/ Intake · TranscriptReview · Results · Findings · SourceViewer · …
-└── __tests__/  360+ tests
+└── __tests__/  440+ tests
 ```
