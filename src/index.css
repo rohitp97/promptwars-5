@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-paper font-sans text-ink antialiased;
+  margin: 0;
+}
+
+/* Visible keyboard focus everywhere; never removed. */
+:focus-visible {
+  outline: 3px solid #1f3a5f;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+mark {
+  background: #ffe58a;
+  color: inherit;
+  padding: 0.05em 0.1em;
+  border-radius: 2px;
+}
+
+mark[data-active='true'] {
+  background: #ffc94a;
+  outline: 2px solid #8a5a00;
+  outline-offset: 1px;
+}
+
+.print-only {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  body {
+    background: #fff;
+  }
+}
