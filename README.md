@@ -137,8 +137,9 @@ to Google's Gemini model to be read; in rule-based mode nothing leaves the brows
 - Gemini is non-deterministic: two runs on the same notice can differ slightly (e.g. how many
   claims it splits a point into). The verified/removed counts can therefore vary run to run.
 - Live-tested through **Firebase AI Logic** on a fresh project (see DESIGN.md §12): text, Hindi,
-  photo OCR, injection, failover, and total-overload fallback. Not yet tested: the deployed Firebase
-  Hosting headers (CSP), App Check with tokens, and multi-page scanned PDFs.
+  photo OCR, injection, failover, total-overload fallback, and the deployed CSP/security headers
+  (`style-src` has no `'unsafe-inline'`; COOP/CORP added). Not yet tested: App Check with tokens,
+  and multi-page scanned PDFs.
 - Cited is **information, not legal advice**.
 
 ## Pre-submission checklist

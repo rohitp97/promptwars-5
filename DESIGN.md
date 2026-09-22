@@ -317,9 +317,24 @@ verified, 0 removed) · English photo: OCR 4.6 s, transcript **identical** after
 `3.5-flash` 200 (35 s) produced a verified result; and when *all three* were overloaded the app fell
 back after 41 s with "The AI service is very busy right now" instead of failing.
 
-**Still not verified:** the deployed CSP against the AI Logic endpoints (dev uses the same meta CSP and
-the requests went through, but the Firebase Hosting headers are untested), App Check *with* tokens,
-and a scanned multi-page PDF.
+**Still not verified:** App Check *with* tokens, and a scanned multi-page PDF.
+
+### Round 3 — header hardening after the first platform submission (2026-09-22)
+
+First submission scored **96.25/100** (Code Quality 100, Testing 100, Accessibility 100, Problem
+Statement Alignment 100, Efficiency 90, Security 85). Traced the Security gap to a genuinely unused
+CSP allowance: `style-src` still had `'unsafe-inline'`, left over from before the app's styling was
+fully Tailwind-only. Confirmed zero inline `style=` attributes, zero `<style>` tags, and no dependency
+(including lucide-react) that sets inline styles, then removed it and added
+`Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Resource-Policy: same-origin`.
+
+Verified with zero CSP violations from the app's own code across three passes — the production build
+under `vite preview`, and the live deployed site, each exercising decode, the verification detail
+drawer, "Show in notice" highlighting, Ask Q&A, the checklist, calendar export and the lawyer brief.
+(A `npm run dev` pass did show one violation, traced to Vite's own dev-mode tooling — not present in
+the shipped bundle.) HSTS was already set by Firebase Hosting by default. Efficiency (90) was left
+alone: nothing in the code pointed to a concrete, fixable inefficiency worth spending a submission
+attempt to chase blind.
 
 ## 13. Ask about this notice (grounded Q&A)
 
